@@ -24,13 +24,19 @@ pnpm-debug.log*
 
 # Data
 data/raw/*
-!data/raw/public
-!data/raw/public/**
 !data/raw/.gitkeep
+!data/raw/public/
+!data/raw/public/**/sample_*
+!data/raw/public/zeek_sample.jsonl
+!data/raw/public/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
 data/splits/*
 !data/splits/.gitkeep
+data/sample/*
+!data/sample/.gitkeep
+!data/sample/demo_flows.csv
+!data/sample/sample_flows.json
 
 # Database
 *.db

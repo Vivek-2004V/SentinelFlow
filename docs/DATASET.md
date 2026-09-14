@@ -13,13 +13,13 @@ This document describes the frozen **Dataset Architecture** for SentinelFlow, ho
           ↓                     ↓
     PUBLIC DATASETS          LAB DATA
           │                     │
-   CIC-IDS2017             iperf3
-   CIC-DDoS2019            hping3
-   CTU-13                  dnscat2 / iodine (DNS tunnel)
-          │                DGA domain engine
-          │                C2 beacon emulator
-          │                nmap / masscan (Recon)
-          │                Upload deviation (Exfil)
+   DataSense IIoT 2025        iperf3 (Volumetric)
+   CICIoT2023                 hping3 (SYN Flood)
+   CICAPT-IIoT2024            dnscat2 / iodine (DNS tunnel)
+   CIC-IDS2017 / DDoS2019     DGA pseudorandom engine
+   CTU-13 (Botnet C2)         C2 beacon emulator
+   CIRA-CIC-DoHBrw2020        nmap / masscan (Recon)
+          │                   Upload deviation (Exfil)
           └──────────┬──────────┘
                      ↓
               NORMALIZATION
@@ -121,6 +121,67 @@ Standard random splitting leaks IP addresses and flow signatures between trainin
 Verification assertion:
 $$\text{AttackerIPs}(\text{Train}) \cap \text{AttackerIPs}(\text{Test}) = \emptyset$$
 
+## 📚 Multi-Dataset Strategy & Threat Coverage Matrix
+
+Because no single dataset from 2020–2026 covers all seven threat classes simultaneously, SentinelFlow utilizes a **multi-dataset normalization stack**:
+
+| Threat Vector | Recommended Primary Dataset | Coverage & Justification |
+| :--- | :--- | :--- |
+| **DDoS & Volumetric** | [DataSense CIC IIoT 2025](https://www.unb.ca/cic/datasets/iiot-dataset-2025.html) & [CICIoT2023](https://www.unb.ca/cic/datasets/iotdataset-2023.html) | High PPS rate surges, SYN/UDP floods, Mirai volumetric flood patterns across 105 devices. |
+| **Reconnaissance** | [CICIoT2023](https://www.unb.ca/cic/datasets/iotdataset-2023.html) & [CIC-IDS2017](https://www.unb.ca/cic/datasets/ids-2017.html) | Vertical port scanning, horizontal subnet sweeps, banner grabbing. |
+| **C2 Beaconing** | [CTU-13 Botnet](https://www.stratosphereips.org/datasets-ctu13) & [CICAPT-IIoT2024](https://www.unb.ca/cic/datasets/iiot-dataset-2024.html) | Regular heartbeat intervals, low-variance inter-arrival times (IAT), Neris/Rbot C2 channels. |
+| **Attack Chains & APT** | [CICAPT-IIoT2024](https://www.unb.ca/cic/datasets/iiot-dataset-2024.html) | 20+ techniques across 8 MITRE tactics (`RECON` $\to$ `C2` $\to$ `LATERAL` $\to$ `COLLECTION` $\to$ `EXFIL`). |
+| **DNS Tunnel / DGA** | [CIRA-CIC-DoHBrw2020](https://www.unb.ca/cic/datasets/dohbrw-2020.html) & Synthetic DGA Engine | High Shannon entropy, anomalous query length, Base64/Hex encapsulation. |
+| **Zero-Day Anomaly** | [CIC IoT-DIAD 2024](https://www.unb.ca/cic/datasets/iot-diad-2024.html) & [DataSense 2025](https://www.unb.ca/cic/datasets/iiot-dataset-2025.html) | Unsupervised Isolation Forest outlier detection on previously unseen behavioral deviations. |
+| **Healthcare / IoMT** | [CICIoMT2024](https://www.unb.ca/cic/datasets/iomt-dataset-2024.html) | 40 medical IoT devices, MQTT telemetry, Bluetooth and Wi-Fi flow captures. |
+| **Comprehensive Hybrid** | [TON_IoT](https://research.unsw.edu.au/projects/toniot-datasets) | Combined network, telemetry, operating system, and IoT attack vectors. |
+
+---
+
+## 🛡️ Feature Mismatch Problem & Encapsulation Architecture
+
+Different public datasets export completely divergent column headers (e.g. CIC-IDS2017 uses `" Flow Duration"`, CTU-13 uses `"Dur"` and `"TotPkts"`, Zeek uses `"orig_bytes"`). 
+
+Furthermore, specialized SentinelFlow features (`periodicity_score`, `dns_entropy`, `outbound_inbound_ratio`) are not pre-packaged in standard L4 flow exports.
+
+To prevent raw dataset artifacts from leaking into detectors or the frontend, SentinelFlow enforces a strict **5-Tier Clean Architecture**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 1. PUBLIC / LAB DATASETS                                    │
+│    (CIC-IDS2017, CIC-DDoS2019, CTU-13, Zeek, Lab Streams)   │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. DATASET ADAPTER LAYER (app/data/public_parsers.py)       │
+│    • Ingests vendor-specific headers without leakage        │
+│    • Standardizes into internal RawFlow data structure      │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. COMMON FEATURE SCHEMA (app/data/normalizer.py)           │
+│    • Frozen 24-column canonical feature schema              │
+│    • Maps labels to 7 standardized threat classes           │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. FEATURE ENGINEERING LAYER (app/features/*)               │
+│    • Computes Shannon entropy, autocorrelation periodicity  │
+│    • Calculates rates (pps, bps), size std, and ratio       │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 5. DETECTION ENGINE & FRONTEND SOC (Clean Public Interface) │
+│    • Supervised Random Forest + Unsupervised Isolation      │
+│    • Explanations & Evidence (Strict ThreatAlert Schema)    │
+│    • Zero dataset-specific columns leak to SOC Dashboard    │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 🚀 Quickstart Commands
@@ -138,3 +199,4 @@ $$\text{AttackerIPs}(\text{Train}) \cap \text{AttackerIPs}(\text{Test}) = \empty
    ```bash
    python scripts/train_detectors.py
    ```
+
