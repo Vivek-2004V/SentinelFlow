@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+numpy
+pandas
+scikit-learn
+xgboost
+httpx
+pytest
+pytest-asyncio
+ruff
+bandit
+pip-audit
+python-multipart
