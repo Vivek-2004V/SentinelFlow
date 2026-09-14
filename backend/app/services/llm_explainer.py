@@ -124,8 +124,9 @@ def generate_alert_explanation(alert: StandardAlert) -> AlertExplanation:
     reasons_str = "; ".join(reasons_list) if reasons_list else "Statistical deviation from baseline"
 
     # 1. Executive Summary
+    sev_name = alert.severity.value if hasattr(alert.severity, "value") else str(alert.severity)
     summary = (
-        f"Passive telemetry detected {alert.severity.value}-severity {tt_str} activity "
+        f"Passive telemetry detected {sev_name}-severity {tt_str} activity "
         f"originating from source IP {alert.src_ip} with a deterministic confidence of "
         f"{int(alert.confidence * 100)}%. Observed indicators: {reasons_str}."
     )
@@ -151,11 +152,10 @@ def generate_alert_explanation(alert: StandardAlert) -> AlertExplanation:
     return AlertExplanation(
         alert_id=alert.flow_id,
         threat_type=tt_str,
-        severity=alert.severity.value,
+        severity=sev_name,
         confidence=alert.confidence,
         executive_summary=summary,
         technical_narrative=narrative,
         mitre_tactics=mitre_list,
         triage_recommendations=triage_list,
     )
-

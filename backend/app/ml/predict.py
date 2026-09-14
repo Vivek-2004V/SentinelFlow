@@ -6,11 +6,8 @@ from typing import Any
 import joblib
 import pandas as pd
 
-MODEL_DIR = Path("models")
-if not (MODEL_DIR / "random_forest.joblib").exists():
-    root_models = Path(__file__).resolve().parent.parent.parent.parent / "models"
-    if (root_models / "random_forest.joblib").exists():
-        MODEL_DIR = root_models
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+MODEL_DIR = PROJECT_ROOT / "models"
 
 
 class MLModels:

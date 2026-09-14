@@ -101,7 +101,7 @@ class Database:
                     alert.src_ip,
                     alert.dst_ip,
                     alert.threat_class,
-                    alert.severity.value,
+                    alert.severity.value if hasattr(alert.severity, "value") else str(alert.severity),
                     alert.confidence,
                     json.dumps(alert.attack_chain),
                     json.dumps(evidence_list),

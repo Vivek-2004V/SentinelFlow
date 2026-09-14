@@ -16,7 +16,8 @@ from sklearn.ensemble import IsolationForest, RandomForestClassifier
 
 logger = logging.getLogger("sentinelflow.ml.registry")
 
-MODELS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "models"
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+MODELS_DIR = PROJECT_ROOT / "models"
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 RF_MODEL_PATH = MODELS_DIR / "random_forest.joblib"

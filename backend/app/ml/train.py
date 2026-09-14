@@ -19,18 +19,11 @@ from sklearn.preprocessing import LabelEncoder
 
 logger = logging.getLogger("sentinel.ml.train")
 
-MODEL_DIR = Path("models")
-if not MODEL_DIR.exists():
-    root_models = Path(__file__).resolve().parent.parent.parent.parent / "models"
-    if root_models.exists():
-        MODEL_DIR = root_models
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+MODEL_DIR = PROJECT_ROOT / "models"
 MODEL_DIR.mkdir(exist_ok=True, parents=True)
 
-DATA_DIR = Path("data/processed")
-if not DATA_DIR.exists():
-    root_data = Path(__file__).resolve().parent.parent.parent.parent / "data" / "processed"
-    if root_data.exists():
-        DATA_DIR = root_data
+DATA_DIR = PROJECT_ROOT / "data" / "processed"
 
 
 def get_feature_columns(df: pd.DataFrame, target_column: str = "threat_class") -> list[str]:
