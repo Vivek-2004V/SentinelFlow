@@ -11,11 +11,10 @@ Aggregates real-time metrics for the Next.js SOC Command Center:
 from __future__ import annotations
 
 from typing import Any, Dict, List
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.schemas.alert import SeverityLevel
-from app.schemas.detection import ThreatType
 from app.services.pipeline import pipeline_orchestrator
 from app.services.streaming_metrics import streaming_metrics_tracker
 

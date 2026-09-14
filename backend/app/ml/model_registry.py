@@ -74,8 +74,8 @@ def load_feature_columns() -> list[str]:
         try:
             _feature_cols_cache = joblib.load(FEATURE_COLUMNS_PATH)
             return _feature_cols_cache
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Could not load feature columns from {FEATURE_COLUMNS_PATH}: {e}")
 
     return FEATURE_ORDER
 
@@ -90,8 +90,8 @@ def load_label_encoder() -> Optional[Any]:
         try:
             _label_encoder_cache = joblib.load(LABEL_ENCODER_PATH)
             return _label_encoder_cache
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Could not load label encoder from {LABEL_ENCODER_PATH}: {e}")
 
     return None
 

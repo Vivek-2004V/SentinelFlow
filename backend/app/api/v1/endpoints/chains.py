@@ -6,11 +6,10 @@ Returns active multi-stage correlated attack chains across monitored internal ho
 from __future__ import annotations
 
 from typing import Any, Dict, List
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.chains.attack_chain import AttackChainPattern
-from app.fusion.temporal import temporal_tracker
 from app.services.pipeline import pipeline_orchestrator
 
 router = APIRouter(prefix="/attack-chains", tags=["Attack Chains"])
@@ -60,7 +59,7 @@ async def list_attack_chains():
     for idx, (ip, events) in enumerate(host_events.items()):
         # Check if host has multi-stage detections
         threat_classes = list({e.threat_class for e in events if e.threat_class and e.threat_class != "BENIGN"})
-        
+
         stages = []
         for e in events:
             if hasattr(e, "attack_chain") and e.attack_chain:

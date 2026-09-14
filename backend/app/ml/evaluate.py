@@ -67,7 +67,7 @@ def evaluate_split(
     split_name: str = "Validation",
 ) -> Dict[str, Any]:
     model, anomaly_model, encoder, feature_columns = load_artifacts()
-    
+
     path = Path(dataset_path)
     if not path.is_absolute():
         path = PROJECT_ROOT / path
