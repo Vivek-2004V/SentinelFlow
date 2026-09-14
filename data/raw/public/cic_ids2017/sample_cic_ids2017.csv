@@ -1,0 +1,5 @@
+Destination Port, Flow Duration, Total Fwd Packets, Total Backward Packets,Total Length of Fwd Packets, Total Length of Bwd Packets, Fwd Packet Length Max, Fwd Packet Length Min, Protocol, Label
+80, 1500, 3, 2, 180, 240, 60, 60, 6, BENIGN
+80, 200, 15000, 0, 900000, 0, 60, 60, 6, DDoS
+443, 2500, 4, 3, 240, 360, 60, 60, 6, BENIGN
+22, 50, 1, 0, 60, 0, 60, 60, 6, PortScan

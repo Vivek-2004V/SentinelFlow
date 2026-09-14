@@ -1,0 +1,4 @@
+StartTime,Dur,Proto,SrcAddr,Sport,Dir,DstAddr,Dport,State,sTos,dTos,TotPkts,TotBytes,SrcBytes,Label
+2011/08/10 09:50:00.123456,1.25,tcp,147.32.84.165,49152,->,147.32.80.9,80,CON,0,0,10,1200,600,flow=From-Botnet-V42-UDP-Attempt
+2011/08/10 09:50:05.123456,0.05,tcp,147.32.84.165,49153,->,203.0.113.88,8443,CON,0,0,4,512,256,flow=From-Botnet-V42-TCP-CC
+2011/08/10 09:50:10.123456,2.10,tcp,147.32.84.170,54321,->,172.217.16.206,443,CON,0,0,18,14500,4200,flow=Background-Established-cmp

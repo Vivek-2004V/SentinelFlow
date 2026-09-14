@@ -1,0 +1,4 @@
+Destination Port, Flow Duration, Total Fwd Packets, Total Backward Packets,Total Length of Fwd Packets, Total Length of Bwd Packets, Fwd Packet Length Max, Fwd Packet Length Min, Protocol, Label
+80, 50, 10000, 0, 800000, 0, 80, 80, 17, Syn
+80, 45, 12000, 0, 960000, 0, 80, 80, 17, UDP-lag
+53, 1200, 2, 2, 120, 180, 60, 60, 17, BENIGN

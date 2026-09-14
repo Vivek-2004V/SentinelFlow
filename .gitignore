@@ -24,10 +24,13 @@ pnpm-debug.log*
 
 # Data
 data/raw/*
-data/processed/*
-data/splits/*
+!data/raw/public
+!data/raw/public/**
 !data/raw/.gitkeep
+data/processed/*
 !data/processed/.gitkeep
+data/splits/*
+!data/splits/.gitkeep
 
 # Database
 *.db
