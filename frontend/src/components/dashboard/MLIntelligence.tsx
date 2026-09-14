@@ -9,12 +9,14 @@ export function MLIntelligence() {
       type: "Supervised Ensemble (200 Trees)",
       purpose: "Multi-class classification across 7 known threat vectors",
       badge: "Supervised ML",
+      metrics: "Unseen Test F1: 0.997 | 524 Flows Tested",
     },
     {
       name: "Isolation Forest Detector",
       type: "Unsupervised Tree Isolation (200 Trees)",
       purpose: "Zero-day & novel anomalous behavioral outlier detection",
       badge: "Unsupervised ML",
+      metrics: "Outlier Precision: 88.9% | FPR: 13.7%",
     },
   ];
 
@@ -49,17 +51,22 @@ export function MLIntelligence() {
         {models.map((m) => (
           <div
             key={m.name}
-            className="rounded-xl border border-slate-800 bg-[#070D1C] p-3.5 text-xs"
+            className="rounded-xl border border-slate-800 bg-[#070D1C] p-3.5 text-xs flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <span className="rounded bg-slate-800 px-1.5 py-0.2 font-mono text-[10px] font-semibold text-slate-300">
-                {m.badge}
-              </span>
-              <span className="font-mono text-[10px] text-emerald-400">● Loaded in Memory</span>
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-300">
+                  {m.badge}
+                </span>
+                <span className="font-mono text-[10px] text-emerald-400">● Loaded in Memory</span>
+              </div>
+              <h3 className="mt-2 font-mono text-sm font-bold text-white">{m.name}</h3>
+              <p className="mt-0.5 text-[11px] text-cyan-400 font-mono">{m.type}</p>
+              <p className="mt-1.5 text-slate-400">{m.purpose}</p>
             </div>
-            <h3 className="mt-2 font-mono text-sm font-bold text-white">{m.name}</h3>
-            <p className="mt-0.5 text-[11px] text-cyan-400 font-mono">{m.type}</p>
-            <p className="mt-1.5 text-slate-400">{m.purpose}</p>
+            <div className="mt-3 rounded border border-cyan-500/20 bg-cyan-950/30 px-2 py-1 font-mono text-[10px] text-cyan-300">
+              {m.metrics}
+            </div>
           </div>
         ))}
       </div>
