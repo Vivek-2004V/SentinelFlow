@@ -10,16 +10,68 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import joblib
 
-from app.detectors.base import BaseHybridDetector
+from app.detectors.base import BaseHybridDetector, DetectionResult
 from app.schemas.detection import ThreatType
 from app.schemas.flow import FlowFeatures
 
 logger = logging.getLogger("sentinelflow.detectors.dga")
 MODEL_PATH = Path(__file__).resolve().parent.parent.parent.parent / "models" / "dga_ngram.joblib"
+
+
+def detect_dga(features: dict[str, Any]) -> DetectionResult:
+    entropy = float(
+        features.get("dns_entropy", 0.0)
+    )
+
+    length = float(
+        features.get("dns_query_length", 0.0)
+    )
+
+    digit_ratio = float(
+        features.get("digit_ratio", 0.0)
+    )
+
+    score = 0.0
+    evidence = []
+
+    if entropy >= 3.5:
+        score += 0.45
+        evidence.append({
+            "feature": "dns_entropy",
+            "value": entropy,
+            "description": "High domain-name entropy",
+        })
+
+    if length >= 20:
+        score += 0.30
+        evidence.append({
+            "feature": "dns_query_length",
+            "value": length,
+            "description": "Unusually long DNS query",
+        })
+
+    if digit_ratio >= 0.20:
+        score += 0.25
+        evidence.append({
+            "feature": "digit_ratio",
+            "value": digit_ratio,
+            "description": "Elevated numeric character ratio",
+        })
+
+    score = min(score, 1.0)
+
+    return DetectionResult(
+        threat_class="DGA",
+        score=score,
+        confidence=score,
+        evidence=evidence,
+        detector="dga_detector_v1",
+    )
+
 
 
 class DGADetector(BaseHybridDetector):

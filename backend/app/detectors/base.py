@@ -1,23 +1,28 @@
 """
-Base Hybrid Detector.
+Base Detector and Canonical Result Schema.
 
-Implements the Triad Architecture:
-                FEATURES
-                   │
-        ┌──────────┼──────────┐
-        ↓          ↓          ↓
-      RULES        ML     STATISTICS
-        │          │          │
-        └──────────┼──────────┘
-                   ↓
-              Threat Score
+Standardizes detector output across the hybrid triad:
+- Rules (signatures, deterministic limits)
+- ML (XGBoost, Random Forest, Isolation Forest)
+- Statistics (z-scores, entropy, fan-out)
 """
 from __future__ import annotations
 
-from typing import List, Tuple
+from dataclasses import dataclass
+from typing import Any, List, Tuple
 
-from app.schemas.detection import DetectionResult, ThreatType
+from app.schemas.detection import DetectionResult as SchemaDetectionResult
+from app.schemas.detection import ThreatType
 from app.schemas.flow import FlowFeatures
+
+
+@dataclass
+class DetectionResult:
+    threat_class: str
+    score: float
+    confidence: float
+    evidence: list[dict[str, Any]]
+    detector: str
 
 
 class BaseHybridDetector:
@@ -39,35 +44,33 @@ class BaseHybridDetector:
 
     def compute_ml(self, features: FlowFeatures) -> Tuple[float, List[str]]:
         """
-        Inference from trained models (XGBoost, Random Forest, N-gram classifier, Isolation Forest).
-        Returns: (score between 0.0 and 1.0, list of evidence keys)
+        Model inference: XGBoost / Random Forest classifier.
+        Falls back to heuristic proxy if models/ is empty or unloaded.
+        Returns: (probability between 0.0 and 1.0, list of evidence keys)
         """
         return 0.0, []
 
     def compute_statistics(self, features: FlowFeatures) -> Tuple[float, List[str]]:
         """
-        Deviations from adaptive baselines, z-scores, entropy, distributions.
-        Returns: (score between 0.0 and 1.0, list of evidence keys)
+        Baseline statistical deviation: z-scores, fan-out, entropy.
+        Returns: (anomaly score between 0.0 and 1.0, list of evidence keys)
         """
         return 0.0, []
 
-    def detect(self, features: FlowFeatures) -> DetectionResult:
+    def evaluate(self, features: FlowFeatures) -> SchemaDetectionResult:
         """
-        Evaluates the Hybrid Triad and computes the final combined threat score.
+        Runs all three engines, applies component weights, and returns a unified DetectionResult.
         """
         r_score, r_keys = self.compute_rules(features)
         m_score, m_keys = self.compute_ml(features)
         s_score, s_keys = self.compute_statistics(features)
 
-        # Normalize bounded [0.0, 1.0]
-        r_score = max(0.0, min(1.0, r_score))
-        m_score = max(0.0, min(1.0, m_score))
-        s_score = max(0.0, min(1.0, s_score))
-
-        # Weighted combined score
-        combined = (self.w_rules * r_score) + (self.w_ml * m_score) + (self.w_stats * s_score)
-        combined_score = round(min(combined, 1.0), 3)
-
+        # Weighted combination
+        combined_score = round(
+            self.w_rules * r_score + self.w_ml * m_score + self.w_stats * s_score,
+            4,
+        )
+        combined_score = max(0.0, min(1.0, combined_score))
         triggered = combined_score >= self.threshold
 
         # Deduplicate and combine evidence keys
@@ -85,7 +88,7 @@ class BaseHybridDetector:
             },
         }
 
-        return DetectionResult(
+        return SchemaDetectionResult(
             threat_type=self.threat_type,
             score=combined_score,
             triggered=triggered,
@@ -94,3 +97,9 @@ class BaseHybridDetector:
             evidence_keys=all_keys,
             raw_features=raw_features,
         )
+
+    def detect(self, features: FlowFeatures) -> SchemaDetectionResult:
+        """
+        Evaluates the Hybrid Triad and computes the final combined threat score.
+        """
+        return self.evaluate(features)

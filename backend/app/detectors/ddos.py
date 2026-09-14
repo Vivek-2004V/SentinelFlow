@@ -10,18 +10,61 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import joblib
 import numpy as np
 
-from app.detectors.base import BaseHybridDetector
+from app.detectors.base import BaseHybridDetector, DetectionResult
 from app.detectors.baseline import global_baseline
 from app.schemas.detection import ThreatType
 from app.schemas.flow import FlowFeatures
 
 logger = logging.getLogger("sentinelflow.detectors.ddos")
 MODEL_PATH = Path(__file__).resolve().parent.parent.parent.parent / "models" / "ddos_model.joblib"
+
+
+def detect_ddos(features: dict[str, Any]) -> DetectionResult:
+    pps = float(features.get("pps", 0))
+    bps = float(features.get("bps", 0))
+    packets = float(features.get("packets", 0))
+
+    score = 0.0
+    evidence = []
+
+    if pps > 1000:
+        score += 0.45
+        evidence.append({
+            "feature": "pps",
+            "value": pps,
+            "description": "Very high packet rate",
+        })
+
+    if bps > 10_000_000:
+        score += 0.35
+        evidence.append({
+            "feature": "bps",
+            "value": bps,
+            "description": "High traffic throughput",
+        })
+
+    if packets > 5000:
+        score += 0.20
+        evidence.append({
+            "feature": "packets",
+            "value": packets,
+            "description": "Large packet volume",
+        })
+
+    score = min(score, 1.0)
+
+    return DetectionResult(
+        threat_class="DDOS",
+        score=score,
+        confidence=score,
+        evidence=evidence,
+        detector="ddos_detector_v1",
+    )
 
 
 class DDoSSDetector(BaseHybridDetector):

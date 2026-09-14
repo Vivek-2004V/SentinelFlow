@@ -8,11 +8,51 @@ Triad Architecture:
 """
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
-from app.detectors.base import BaseHybridDetector
+from app.detectors.base import BaseHybridDetector, DetectionResult
 from app.schemas.detection import ThreatType
 from app.schemas.flow import FlowFeatures
+
+
+def detect_recon(features: dict[str, Any]) -> DetectionResult:
+    ports = float(
+        features.get("unique_dst_ports", 0)
+    )
+
+    hosts = float(
+        features.get("unique_dst_hosts", 0)
+    )
+
+    score = 0.0
+    evidence = []
+
+    if ports >= 20:
+        score += 0.55
+        evidence.append({
+            "feature": "unique_dst_ports",
+            "value": ports,
+            "description": "High destination-port fan-out",
+        })
+
+    if hosts >= 10:
+        score += 0.45
+        evidence.append({
+            "feature": "unique_dst_hosts",
+            "value": hosts,
+            "description": "High destination-host fan-out",
+        })
+
+    score = min(score, 1.0)
+
+    return DetectionResult(
+        threat_class="RECON",
+        score=score,
+        confidence=score,
+        evidence=evidence,
+        detector="recon_detector_v1",
+    )
+
 
 
 class ReconDetector(BaseHybridDetector):

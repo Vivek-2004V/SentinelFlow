@@ -8,11 +8,58 @@ Triad Architecture:
 """
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
-from app.detectors.base import BaseHybridDetector
+from app.detectors.base import BaseHybridDetector, DetectionResult
 from app.schemas.detection import ThreatType
 from app.schemas.flow import FlowFeatures
+
+
+def detect_tls_anomaly(
+    features: dict[str, Any],
+) -> DetectionResult:
+
+    packet_std = float(
+        features.get("packet_size_std", 0)
+    )
+
+    iat_std = float(
+        features.get("iat_std", 0)
+    )
+
+    score = 0.0
+    evidence = []
+
+    if packet_std > 500:
+        score += 0.50
+        evidence.append({
+            "feature": "packet_size_std",
+            "value": packet_std,
+            "description": (
+                "Unusual encrypted-session packet-size variation"
+            ),
+        })
+
+    if iat_std > 5:
+        score += 0.50
+        evidence.append({
+            "feature": "iat_std",
+            "value": iat_std,
+            "description": (
+                "Unusual encrypted-session timing variation"
+            ),
+        })
+
+    score = min(score, 1.0)
+
+    return DetectionResult(
+        threat_class="TLS_ANOMALY",
+        score=score,
+        confidence=score,
+        evidence=evidence,
+        detector="tls_anomaly_detector_v1",
+    )
+
 
 
 class TLSAnomalyDetector(BaseHybridDetector):

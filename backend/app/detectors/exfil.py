@@ -10,18 +10,60 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import joblib
 import numpy as np
 
-from app.detectors.base import BaseHybridDetector
+from app.detectors.base import BaseHybridDetector, DetectionResult
 from app.detectors.baseline import global_baseline
 from app.schemas.detection import ThreatType
 from app.schemas.flow import FlowFeatures
 
 logger = logging.getLogger("sentinelflow.detectors.exfil")
 MODEL_PATH = Path(__file__).resolve().parent.parent.parent.parent / "models" / "flow_anomaly.joblib"
+
+
+def detect_exfil(features: dict[str, Any]) -> DetectionResult:
+    ratio = float(
+        features.get("outbound_inbound_ratio", 0)
+    )
+
+    outbound = float(
+        features.get("outbound_bytes", 0)
+    )
+
+    score = 0.0
+    evidence = []
+
+    if ratio >= 5:
+        score += 0.60
+
+        evidence.append({
+            "feature": "outbound_inbound_ratio",
+            "value": ratio,
+            "description": "Strong outbound traffic asymmetry",
+        })
+
+    if outbound >= 10_000_000:
+        score += 0.40
+
+        evidence.append({
+            "feature": "outbound_bytes",
+            "value": outbound,
+            "description": "Large outbound data volume",
+        })
+
+    score = min(score, 1.0)
+
+    return DetectionResult(
+        threat_class="EXFIL",
+        score=score,
+        confidence=score,
+        evidence=evidence,
+        detector="exfil_detector_v1",
+    )
+
 
 
 class ExfiltrationDetector(BaseHybridDetector):

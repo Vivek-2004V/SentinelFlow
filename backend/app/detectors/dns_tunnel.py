@@ -8,11 +8,54 @@ Triad Architecture:
 """
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
-from app.detectors.base import BaseHybridDetector
+from app.detectors.base import BaseHybridDetector, DetectionResult
 from app.schemas.detection import ThreatType
 from app.schemas.flow import FlowFeatures
+
+
+def detect_dns_tunnel(
+    features: dict[str, Any],
+) -> DetectionResult:
+
+    length = float(
+        features.get("dns_query_length", 0.0)
+    )
+
+    entropy = float(
+        features.get("dns_entropy", 0.0)
+    )
+
+    score = 0.0
+    evidence = []
+
+    if length >= 40:
+        score += 0.50
+        evidence.append({
+            "feature": "dns_query_length",
+            "value": length,
+            "description": "Long DNS query observed",
+        })
+
+    if entropy >= 4.0:
+        score += 0.50
+        evidence.append({
+            "feature": "dns_entropy",
+            "value": entropy,
+            "description": "High-entropy DNS query",
+        })
+
+    score = min(score, 1.0)
+
+    return DetectionResult(
+        threat_class="DNS_TUNNEL",
+        score=score,
+        confidence=score,
+        evidence=evidence,
+        detector="dns_tunnel_detector_v1",
+    )
+
 
 
 class DNSTunnelDetector(BaseHybridDetector):
