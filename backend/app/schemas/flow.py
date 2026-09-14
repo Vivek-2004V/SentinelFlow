@@ -1,14 +1,63 @@
 """
-Ingest-layer data models.
+SentinelFlow Ingest and Common Schema Data Models.
 
-RawFlow  — one network flow record as received from Zeek / NetFlow / PCAP.
-FlowFeatures — numerical features extracted for detector input.
+NetworkFlow  — Canonical Common Schema representing normalized 24-feature records.
+RawFlow      — Ingested one-way passively observed network flow from Zeek / NetFlow / PCAP.
+FlowFeatures — Numerical features extracted for hybrid detector pipeline.
 """
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field
+
+
+class NetworkFlow(BaseModel):
+    """
+    Canonical Common Schema for SentinelFlow.
+    Decouples feature engineering and detection from specific raw dataset formats.
+    """
+    timestamp: datetime
+    flow_id: str
+
+    src_ip: str
+    dst_ip: str
+
+    src_port: Optional[int] = Field(default=None, ge=0, le=65535)
+    dst_port: Optional[int] = Field(default=None, ge=0, le=65535)
+
+    protocol: str
+
+    duration: float = Field(default=0.0, ge=0.0)
+    packets: int = Field(default=0, ge=0)
+    bytes: int = Field(default=0, ge=0)
+
+    pps: float = Field(default=0.0, ge=0.0)
+    bps: float = Field(default=0.0, ge=0.0)
+
+    mean_packet_size: float = Field(default=0.0, ge=0.0)
+    packet_size_std: float = Field(default=0.0, ge=0.0)
+
+    mean_iat: float = Field(default=0.0, ge=0.0)
+    iat_std: float = Field(default=0.0, ge=0.0)
+
+    unique_dst_ports: int = Field(default=0, ge=0)
+    unique_dst_hosts: int = Field(default=0, ge=0)
+
+    dns_query_length: Optional[float] = Field(default=None, ge=0.0)
+    dns_entropy: Optional[float] = Field(default=None, ge=0.0)
+
+    periodicity_score: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+    )
+
+    outbound_inbound_ratio: float = Field(default=0.0, ge=0.0)
+
+    label: str
+    threat_class: str
 
 
 class RawFlow(BaseModel):
@@ -17,8 +66,8 @@ class RawFlow(BaseModel):
     # Transport
     src_ip: str = Field(..., description="Source IP address")
     dst_ip: str = Field(..., description="Destination IP address")
-    src_port: int | None = Field(None, ge=0, le=65535)
-    dst_port: int | None = Field(None, ge=0, le=65535)
+    src_port: Optional[int] = Field(None, ge=0, le=65535)
+    dst_port: Optional[int] = Field(None, ge=0, le=65535)
     proto: str = Field(..., description="Protocol: TCP / UDP / ICMP")
 
     # Volume
@@ -32,11 +81,11 @@ class RawFlow(BaseModel):
     duration_seconds: float = Field(0.0, ge=0.0)
 
     # Application-layer hints (optional — from Zeek logs)
-    dns_query: str | None = None
-    http_host: str | None = None
-    tls_sni: str | None = None
-    ja3_hash: str | None = None        # TLS client fingerprint
-    quic_version: str | None = None
+    dns_query: Optional[str] = None
+    http_host: Optional[str] = None
+    tls_sni: Optional[str] = None
+    ja3_hash: Optional[str] = None        # TLS client fingerprint
+    quic_version: Optional[str] = None
 
     # Ingest metadata
     sensor_id: str = Field("default", description="Which sensor collected this")
@@ -81,4 +130,4 @@ class FlowFeatures(BaseModel):
     src_ip: str = ""
     dst_port: int = 0
     proto: str = ""
-    start_time: datetime | None = None
+    start_time: Optional[datetime] = None

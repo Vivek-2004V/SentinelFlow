@@ -42,6 +42,91 @@ CANONICAL_24_FEATURES = [
 ]
 
 
+FROZEN_THREAT_CLASSES = [
+    "BENIGN",
+    "DDOS",
+    "C2_BEACON",
+    "DGA",
+    "DNS_TUNNEL",
+    "RECON",
+    "EXFIL",
+    "TLS_ANOMALY",
+]
+
+THREAT_TAXONOMY_MAP: Dict[str, str] = {
+    # Benign
+    "BENIGN": "BENIGN",
+    "NORMAL": "BENIGN",
+    "LEGITIMATE": "BENIGN",
+    # DDoS & Flooding
+    "DDOS": "DDOS",
+    "DOS": "DDOS",
+    "SYN_FLOOD": "DDOS",
+    "SYN FLOOD": "DDOS",
+    "UDP_FLOOD": "DDOS",
+    "UDP FLOOD": "DDOS",
+    "ICMP_FLOOD": "DDOS",
+    "BANDWIDTH_ANOMALY": "DDOS",
+    # C2 & Botnets
+    "C2_BEACON": "C2_BEACON",
+    "C2": "C2_BEACON",
+    "BEACON": "C2_BEACON",
+    "BOTNET": "C2_BEACON",
+    "BOT": "C2_BEACON",
+    "NERIS": "C2_BEACON",
+    "RBOT": "C2_BEACON",
+    "VIRUT": "C2_BEACON",
+    # DGA
+    "DGA": "DGA",
+    "ALGORITHMIC_DOMAIN": "DGA",
+    # DNS Tunnel
+    "DNS_TUNNEL": "DNS_TUNNEL",
+    "DNS TUNNEL": "DNS_TUNNEL",
+    "DNSCAT2": "DNS_TUNNEL",
+    "IODINE": "DNS_TUNNEL",
+    # Recon & Scanning
+    "RECON": "RECON",
+    "PORTSCAN": "RECON",
+    "PORT_SCAN": "RECON",
+    "HOST_SWEEP": "RECON",
+    "SCAN": "RECON",
+    "PROBING": "RECON",
+    # Exfiltration
+    "EXFIL": "EXFIL",
+    "EXFILTRATION": "EXFIL",
+    "DATA_EXFIL": "EXFIL",
+    # TLS Anomaly
+    "TLS_ANOMALY": "TLS_ANOMALY",
+    "SSL_ANOMALY": "TLS_ANOMALY",
+    "JA3_ANOMALY": "TLS_ANOMALY",
+}
+
+
+def map_threat_class(raw_threat_or_label: str) -> str:
+    """Maps raw dataset label or threat string to canonical frozen taxonomy."""
+    cleaned = str(raw_threat_or_label).strip().upper().replace("-", "_")
+    if cleaned in THREAT_TAXONOMY_MAP:
+        return THREAT_TAXONOMY_MAP[cleaned]
+
+    # Substring heuristic checks for novel labels
+    if any(k in cleaned for k in ("DDOS", "DOS", "FLOOD")):
+        return "DDOS"
+    if any(k in cleaned for k in ("SCAN", "SWEEP", "PROB")):
+        return "RECON"
+    if any(k in cleaned for k in ("BOT", "C2", "BEACON")):
+        return "C2_BEACON"
+    if "DGA" in cleaned:
+        return "DGA"
+    if any(k in cleaned for k in ("TUNNEL", "DNSCAT", "IODINE")):
+        return "DNS_TUNNEL"
+    if any(k in cleaned for k in ("EXFIL", "THEFT", "LEAK")):
+        return "EXFIL"
+    if any(k in cleaned for k in ("TLS", "SSL", "JA3", "CERT")):
+        return "TLS_ANOMALY"
+
+    return "ANOMALY"
+
+
 def normalize_flow_record(raw: Dict[str, Any], default_run_id: str = "run_a") -> Dict[str, Any]:
     """
     Normalizes a raw dictionary flow into a standardized feature record.
@@ -104,7 +189,8 @@ def normalize_flow_record(raw: Dict[str, Any], default_run_id: str = "run_a") ->
     source_cat = "public" if "public" in raw.get("source_format", "") else "lab"
     generator = raw.get("generator", raw.get("source_format", "unknown"))
     label = int(raw.get("label", 0 if raw.get("threat_class", "BENIGN") == "BENIGN" else 1))
-    threat_class = raw.get("threat_class", "BENIGN" if label == 0 else "ANOMALY")
+    raw_tc = raw.get("threat_class", "BENIGN" if label == 0 else "ANOMALY")
+    threat_class = map_threat_class(raw_tc)
     timestamp = raw.get("timestamp", "2026-09-14T10:00:00Z")
 
     tot_pkts = raw_flow.pkts_sent + raw_flow.pkts_recv
