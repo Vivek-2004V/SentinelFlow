@@ -6,14 +6,22 @@ import { ConnectionMode } from "@/lib/types";
 interface HeaderProps {
   connectionMode: ConnectionMode;
   lastUpdated: string;
+  apiConnected?: boolean;
+  isLoading?: boolean;
   onRefresh?: () => void;
 }
 
-export function Header({ connectionMode, lastUpdated, onRefresh }: HeaderProps) {
-  const isLive = connectionMode === "ONLINE";
+export function Header({
+  connectionMode,
+  lastUpdated,
+  apiConnected = true,
+  isLoading = false,
+  onRefresh,
+}: HeaderProps) {
+  const isOnline = connectionMode === "ONLINE";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-[#060913]/90 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-[#060913]/90 px-4 md:px-6 backdrop-blur-md">
       {/* Brand & Wordmark */}
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-950/40 text-cyan-400 shadow-[0_0_15px_-3px_rgba(56,189,248,0.25)]">
@@ -27,7 +35,7 @@ export function Header({ connectionMode, lastUpdated, onRefresh }: HeaderProps) 
               Sentinel<span className="text-cyan-400">Flow</span>
             </span>
             <span className="rounded bg-slate-800/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400">
-              v1.0
+              SOC v1.0
             </span>
           </div>
           <p className="text-[11px] font-medium tracking-wide text-slate-400">
@@ -37,21 +45,42 @@ export function Header({ connectionMode, lastUpdated, onRefresh }: HeaderProps) 
       </div>
 
       {/* Center / Right Telemetry Status */}
-      <div className="flex items-center gap-3 md:gap-4">
-        {/* Sensor Live/Demo Indicator */}
+      <div className="flex items-center gap-2.5 md:gap-4">
+        {/* Replay / Ingest Mode Badge */}
         <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-[#0B1120] px-3 py-1 text-xs">
           <span
             className={`h-2 w-2 rounded-full ${
-              isLive ? "bg-emerald-400 pulse-glow-green" : "bg-amber-400 pulse-glow-amber"
+              isOnline
+                ? "bg-emerald-400 animate-pulse"
+                : "bg-amber-400 animate-pulse"
             }`}
           />
-          <span className="font-mono text-[11px] font-medium tracking-wider text-slate-300 uppercase">
-            {isLive ? "SENSOR ONLINE" : "DEMO / REPLAY MODE"}
+          <div className="flex items-center gap-1.5 font-mono text-[11px] font-medium tracking-wider">
+            <span className={isOnline ? "text-emerald-300" : "text-amber-300"}>
+              {isOnline ? "● LIVE TAP INGRESS" : "● REPLAY MODE"}
+            </span>
+            {!isOnline && (
+              <span className="hidden sm:inline text-slate-500 font-mono text-[10px]">
+                (Source: demo_flows.csv)
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* API Connectivity Status */}
+        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-slate-800/80 bg-[#070D1C] px-2.5 py-1 text-[11px] font-mono">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              apiConnected ? "bg-emerald-400" : "bg-rose-500 animate-ping"
+            }`}
+          />
+          <span className={apiConnected ? "text-slate-300" : "text-rose-400"}>
+            {apiConnected ? "API CONNECTED" : "API OFFLINE"}
           </span>
         </div>
 
-        {/* Security Invariant Pills */}
-        <div className="hidden items-center gap-1.5 sm:flex">
+        {/* Security Invariant Badges */}
+        <div className="hidden md:flex items-center gap-1.5">
           <span className="rounded border border-cyan-500/30 bg-cyan-950/30 px-2 py-0.5 font-mono text-[11px] font-medium text-cyan-300">
             READ-ONLY
           </span>
@@ -61,15 +90,24 @@ export function Header({ connectionMode, lastUpdated, onRefresh }: HeaderProps) 
         </div>
 
         {/* Last Updated Timestamp & Refresh Button */}
-        <div className="hidden items-center gap-2 text-slate-500 lg:flex">
-          <span className="text-xs">Last updated: {lastUpdated}</span>
+        <div className="flex items-center gap-2 text-slate-500">
+          <span className="hidden xl:inline text-xs font-mono">
+            {isLoading ? "Syncing..." : `Updated: ${lastUpdated}`}
+          </span>
           {onRefresh && (
             <button
               onClick={onRefresh}
-              className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
-              title="Refresh telemetry"
+              disabled={isLoading}
+              className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors disabled:opacity-50"
+              title="Poll backend telemetry"
             >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <svg
+                className={`h-3.5 w-3.5 ${isLoading ? "animate-spin text-cyan-400" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>

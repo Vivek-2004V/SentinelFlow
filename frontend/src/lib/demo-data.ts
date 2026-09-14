@@ -9,6 +9,11 @@ import {
 } from "./types";
 
 export const DEMO_METRICS: DashboardMetrics = {
+  flows_analyzed: 18420,
+  threats_detected: 137,
+  high_severity: 29,
+  critical_severity: 6,
+  active_chains: 8,
   flow_rate: 24820,
   flow_rate_trend: 8.4,
   active_threats: 47,

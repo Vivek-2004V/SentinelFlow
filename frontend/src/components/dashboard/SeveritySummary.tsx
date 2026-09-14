@@ -2,10 +2,53 @@
 
 import React from "react";
 import { DEMO_SEVERITY_SUMMARY } from "@/lib/demo-data";
-import { SeverityCount } from "@/lib/types";
+import { SeverityCount, ThreatAlert } from "@/lib/types";
 
-export function SeveritySummary() {
-  const severities: SeverityCount[] = DEMO_SEVERITY_SUMMARY;
+interface SeveritySummaryProps {
+  alerts?: ThreatAlert[];
+}
+
+const SEVERITY_CONFIG: Record<string, { color: string; order: number }> = {
+  CRITICAL: { color: "#F43F5E", order: 1 },
+  HIGH: { color: "#FB923C", order: 2 },
+  MEDIUM: { color: "#FBBF24", order: 3 },
+  LOW: { color: "#38BDF8", order: 4 },
+  INFO: { color: "#94A3B8", order: 5 },
+};
+
+export function SeveritySummary({ alerts }: SeveritySummaryProps) {
+  let severities: SeverityCount[] = DEMO_SEVERITY_SUMMARY;
+
+  if (alerts && alerts.length > 0) {
+    const total = alerts.length;
+    const counts: Record<string, number> = {
+      CRITICAL: 0,
+      HIGH: 0,
+      MEDIUM: 0,
+      LOW: 0,
+      INFO: 0,
+    };
+
+    alerts.forEach((a) => {
+      const sev = (a.severity || "INFO").toUpperCase();
+      if (counts[sev] !== undefined) {
+        counts[sev]++;
+      } else {
+        counts.INFO++;
+      }
+    });
+
+    severities = Object.entries(counts).map(([sev, count]) => ({
+      severity: sev as any,
+      count,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      color: SEVERITY_CONFIG[sev]?.color || "#94A3B8",
+    }));
+  }
+
+  const actionableCount = severities
+    .filter((s) => s.severity === "CRITICAL" || s.severity === "HIGH")
+    .reduce((acc, s) => acc + s.count, 0);
 
   return (
     <div className="glass-panel rounded-xl p-5 shadow-sm">
@@ -19,7 +62,7 @@ export function SeveritySummary() {
           </p>
         </div>
         <span className="rounded bg-rose-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-rose-400 border border-rose-500/20">
-          6 Actionable
+          {actionableCount} Actionable
         </span>
       </div>
 

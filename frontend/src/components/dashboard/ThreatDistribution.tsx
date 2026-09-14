@@ -3,10 +3,44 @@
 import React from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { DEMO_THREAT_DISTRIBUTION } from "@/lib/demo-data";
-import { ThreatDistributionItem } from "@/lib/types";
+import { ThreatAlert, ThreatDistributionItem } from "@/lib/types";
 
-export function ThreatDistribution() {
-  const data: ThreatDistributionItem[] = DEMO_THREAT_DISTRIBUTION;
+interface ThreatDistributionProps {
+  alerts?: ThreatAlert[];
+}
+
+const THREAT_COLORS: Record<string, string> = {
+  DDOS: "#38BDF8",
+  RECON: "#F59E0B",
+  C2_BEACON: "#EF4444",
+  DGA: "#8B5CF6",
+  DNS_TUNNEL: "#EC4899",
+  EXFIL: "#10B981",
+  TLS_ANOMALY: "#6366F1",
+  LIKELY_COMPROMISED_HOST: "#DC2626",
+  ANOMALY: "#64748B",
+};
+
+export function ThreatDistribution({ alerts }: ThreatDistributionProps) {
+  let data: ThreatDistributionItem[] = DEMO_THREAT_DISTRIBUTION;
+
+  if (alerts && alerts.length > 0) {
+    const counts: Record<string, number> = {};
+    alerts.forEach((a) => {
+      const cls = a.threat_class || "ANOMALY";
+      counts[cls] = (counts[cls] || 0) + 1;
+    });
+
+    const totalAlerts = alerts.length;
+    data = Object.entries(counts).map(([cls, count]) => ({
+      name: cls.replace(/_/g, " "),
+      threat_class: cls,
+      count,
+      percentage: Math.round((count / totalAlerts) * 100),
+      color: THREAT_COLORS[cls] || "#38BDF8",
+    }));
+  }
+
   const total = data.reduce((acc, item) => acc + item.count, 0);
 
   return (

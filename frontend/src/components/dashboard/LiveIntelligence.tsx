@@ -34,7 +34,7 @@ export function LiveIntelligence({ alerts }: LiveIntelligenceProps) {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold tracking-tight text-white">
-              Live Intelligence Feed
+              Live Threat Intelligence
             </h2>
             <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] font-medium text-slate-300">
               {filteredAlerts.length} Events

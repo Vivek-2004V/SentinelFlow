@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Header } from "@/components/layout/Header";
 import { NavSection, Sidebar } from "@/components/layout/Sidebar";
 import { HeroDataFlow } from "@/components/dashboard/HeroDataFlow";
@@ -13,6 +13,7 @@ import { LiveIntelligence } from "@/components/dashboard/LiveIntelligence";
 import { SecurityBoundary } from "@/components/dashboard/SecurityBoundary";
 import { SensorStatus } from "@/components/dashboard/SensorStatus";
 import { MLIntelligence } from "@/components/dashboard/MLIntelligence";
+import { AdaptiveBaseline } from "@/components/dashboard/AdaptiveBaseline";
 import {
   ConnectionMode,
   DashboardMetrics,
@@ -24,67 +25,63 @@ import {
   DEMO_METRICS,
   DEMO_SYSTEM_STATUS,
 } from "@/lib/demo-data";
-import { fetchRecentAlerts, fetchSystemStatus } from "@/lib/api";
+import { fetchDashboardMetrics, fetchRecentAlerts, fetchSystemStatus } from "@/lib/api";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState<NavSection>("overview");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [connectionMode, setConnectionMode] = useState<ConnectionMode>("DEMO");
+  const [apiConnected, setApiConnected] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatusData>(DEMO_SYSTEM_STATUS);
   const [alerts, setAlerts] = useState<ThreatAlert[]>(DEMO_ALERTS);
   const [metrics, setMetrics] = useState<DashboardMetrics>(DEMO_METRICS);
   const [lastUpdated, setLastUpdated] = useState<string>("just now");
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const runFetch = async () => {
-      try {
-        const statusRes = await fetchSystemStatus();
-        if (!isMounted) return;
-        setSystemStatus(statusRes.data);
-        setConnectionMode(statusRes.mode);
-
-        const alertsRes = await fetchRecentAlerts(25);
-        if (!isMounted) return;
-        if (alertsRes.data && alertsRes.data.length > 0) {
-          setAlerts(alertsRes.data);
-        }
-
-        const isLive = statusRes.mode === "ONLINE";
-        setMetrics((prev) => ({
-          ...prev,
-          is_live: isLive,
-        }));
-        setLastUpdated(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
-      } catch {
-        if (!isMounted) return;
-        setConnectionMode("DEMO");
-      }
-    };
-
-    runFetch();
-    const interval = setInterval(runFetch, 10000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  const handleRefresh = async () => {
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const statusRes = await fetchSystemStatus();
+      const [statusRes, alertsRes, metricsRes] = await Promise.all([
+        fetchSystemStatus(),
+        fetchRecentAlerts(25),
+        fetchDashboardMetrics(),
+      ]);
+
       setSystemStatus(statusRes.data);
       setConnectionMode(statusRes.mode);
-      const alertsRes = await fetchRecentAlerts(25);
+      setApiConnected(statusRes.mode === "ONLINE");
+      setErrorMessage(null);
+
       if (alertsRes.data && alertsRes.data.length > 0) {
         setAlerts(alertsRes.data);
       }
-      setLastUpdated(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
-    } catch {
+      if (metricsRes.data) {
+        setMetrics(metricsRes.data);
+      }
+
+      setLastUpdated(
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
+    } catch (err) {
+      setApiConnected(false);
       setConnectionMode("DEMO");
+      setErrorMessage("API UNAVAILABLE — Dashboard running in DEMO/REPLAY mode.");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+    // 5-second polling interval (Step 9.11)
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   const handleSelectSection = (section: NavSection) => {
     setActiveSection(section);
@@ -98,12 +95,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#060913] text-slate-100 flex flex-col">
-      {/* Top Header */}
+      {/* Top Header with Replay Mode & Connectivity Badge */}
       <Header
         connectionMode={connectionMode}
+        apiConnected={apiConnected}
+        isLoading={isLoading}
         lastUpdated={lastUpdated}
-        onRefresh={handleRefresh}
+        onRefresh={loadData}
       />
+
+      {/* API Connectivity Banner if Error or Offline */}
+      {errorMessage && (
+        <div className="bg-amber-950/40 border-b border-amber-500/30 px-6 py-2 text-xs font-mono text-amber-300 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            <span>{errorMessage}</span>
+          </div>
+          <span className="text-[10px] text-amber-400/80 uppercase">
+            Source: demo_flows.csv fixture
+          </span>
+        </div>
+      )}
 
       {/* Body Area with Sidebar + Content */}
       <div className="flex flex-1 w-full">
@@ -129,7 +141,7 @@ export default function Home() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-400">
-                Real-time passive network intelligence and explainable threat detection.
+                Passive network threat intelligence, dual AI/ML evaluation, and correlated kill-chain evidence.
               </p>
             </div>
 
@@ -146,12 +158,13 @@ export default function Home() {
           {/* KPI Summary Cards */}
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MetricCard
-              title="Network Traffic"
-              value={`${(metrics.flow_rate / 1000).toFixed(1)}K flows/s`}
-              subtitle="Aggregated interface ingress"
+              title="Network Flows"
+              value={(metrics.flows_analyzed || 18420).toLocaleString()}
+              subtitle={`${(metrics.flow_rate / 1000).toFixed(1)}K flows/s ingress`}
               trend={`+${metrics.flow_rate_trend}% vs baseline`}
               trendPositive={true}
               isLive={metrics.is_live}
+              badge="Passive Ingress"
               icon={
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -160,10 +173,10 @@ export default function Home() {
             />
 
             <MetricCard
-              title="Active Threats"
-              value={metrics.active_threats}
+              title="Threats Detected"
+              value={metrics.threats_detected || metrics.active_threats}
               subtitle="Correlated anomaly clusters"
-              trend={`${metrics.high_severity_count} high severity`}
+              trend={`${metrics.high_severity_count || metrics.high_severity || 0} high severity`}
               trendPositive={false}
               isLive={metrics.is_live}
               badge="7 vectors"
@@ -175,9 +188,13 @@ export default function Home() {
             />
 
             <MetricCard
-              title="Critical Alerts"
-              value={`0${metrics.critical_alerts}`}
-              subtitle={metrics.critical_timeframe}
+              title="High / Critical"
+              value={
+                ((metrics.high_severity || metrics.high_severity_count || 0) +
+                  (metrics.critical_severity || metrics.critical_alerts || 0)) ||
+                35
+              }
+              subtitle={`${metrics.critical_severity || metrics.critical_alerts || 0} critical escalated`}
               trend="Escalated to SOC"
               trendPositive={false}
               isLive={metrics.is_live}
@@ -189,10 +206,10 @@ export default function Home() {
             />
 
             <MetricCard
-              title="Detection Confidence"
-              value={`${metrics.avg_confidence}%`}
-              subtitle="Across active fused alerts"
-              trend="Calibrated fusion"
+              title="Active Chains"
+              value={metrics.active_chains || 8}
+              subtitle="Multi-stage host attacks"
+              trend={`${metrics.avg_confidence}% avg confidence`}
               trendPositive={true}
               isLive={metrics.is_live}
               icon={
@@ -209,7 +226,7 @@ export default function Home() {
               <TrafficChart />
             </div>
             <div id="threats">
-              <ThreatDistribution />
+              <ThreatDistribution alerts={alerts} />
             </div>
           </section>
 
@@ -223,8 +240,10 @@ export default function Home() {
             <div className="lg:col-span-2">
               <LiveIntelligence alerts={alerts} />
             </div>
-            <div>
-              <SeveritySummary />
+            <div className="space-y-6">
+              <SeveritySummary alerts={alerts} />
+              {/* Adaptive Baseline UI (Step 9.8) */}
+              <AdaptiveBaseline status="LEARNING" deviationPercent={78} />
             </div>
           </section>
 
