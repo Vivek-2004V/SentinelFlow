@@ -39,9 +39,18 @@ def get_feature_columns(df: pd.DataFrame, target_column: str = "threat_class") -
     return [c for c in df.columns if c not in excluded]
 
 
+def clean_numeric_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Replaces infinities with NaN, drops empty rows, and prepares dataframe for clean ML training."""
+    import numpy as np
+    df = df.replace([np.inf, -np.inf], np.nan)
+    df = df.dropna(axis=0, how="all")
+    return df
+
+
 def prepare_features(df: pd.DataFrame, feature_columns: list[str]) -> pd.DataFrame:
     """Prepares and coerces feature frame to numerical representations."""
-    X = df[feature_columns].copy()
+    cleaned_df = clean_numeric_data(df)
+    X = cleaned_df[feature_columns].copy()
     if "protocol" in X.columns:
         X["protocol"] = (
             X["protocol"]
