@@ -9,8 +9,3 @@ scikit-learn
 joblib
 python-multipart
 httpx
-pytest
-pytest-asyncio
-ruff
-bandit
-pip-audit
