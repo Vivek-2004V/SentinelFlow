@@ -91,7 +91,7 @@ export function Header({
 
         {/* Last Updated Timestamp & Refresh Button */}
         <div className="flex items-center gap-2 text-slate-500">
-          <span className="hidden xl:inline text-xs font-mono">
+          <span className="hidden xl:inline text-xs font-mono" suppressHydrationWarning={true}>
             {isLoading ? "Syncing..." : `Updated: ${lastUpdated}`}
           </span>
           {onRefresh && (

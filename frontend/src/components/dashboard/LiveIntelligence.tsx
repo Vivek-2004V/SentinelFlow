@@ -8,6 +8,20 @@ interface LiveIntelligenceProps {
   alerts: ThreatAlert[];
 }
 
+function formatAlertTime(timestamp: string): string {
+  if (!timestamp) return "--:--";
+  if (timestamp.includes("T")) {
+    const timePart = timestamp.split("T")[1];
+    if (timePart) {
+      const parts = timePart.split(":");
+      if (parts.length >= 2) {
+        return `${parts[0]}:${parts[1]}`;
+      }
+    }
+  }
+  return timestamp.slice(0, 5);
+}
+
 export function LiveIntelligence({ alerts }: LiveIntelligenceProps) {
   const [filterSeverity, setFilterSeverity] = useState<SeverityLevel | "ALL">("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -136,8 +150,11 @@ export function LiveIntelligence({ alerts }: LiveIntelligenceProps) {
                     <span className="rounded bg-cyan-500/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-cyan-400 border border-cyan-500/20">
                       {(alert.confidence * 100).toFixed(0)}% Conf
                     </span>
-                    <span className="font-mono text-[11px] text-slate-400">
-                      {new Date(alert.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    <span
+                      className="font-mono text-[11px] text-slate-400"
+                      suppressHydrationWarning={true}
+                    >
+                      {formatAlertTime(alert.timestamp)}
                     </span>
                   </div>
 
