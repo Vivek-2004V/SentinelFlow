@@ -6,12 +6,11 @@ python-dotenv
 numpy
 pandas
 scikit-learn
-xgboost
+joblib
+python-multipart
 httpx
 pytest
 pytest-asyncio
 ruff
 bandit
 pip-audit
-python-multipart
-joblib
