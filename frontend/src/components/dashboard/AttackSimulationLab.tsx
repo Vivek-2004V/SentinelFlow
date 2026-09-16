@@ -541,11 +541,12 @@ export function AttackSimulationLab({ onAlertsGenerated }: AttackSimulationLabPr
                 </div>
               ))}
 
-              {/* AI/ML Analysis */}
+              {/* AI/ML Analysis & LLM Incident Explanation */}
               {result.ai_analysis && (
                 <SimulationAIAnalysis
                   analysis={result.ai_analysis}
                   attackType={result.attack_type}
+                  llm={result.llm}
                 />
               )}
             </div>

@@ -26,6 +26,7 @@ from app.features.flow import extract_flow_features
 from app.features.dns import extract_dns_features
 from app.features.tls import extract_tls_features
 from app.detectors.baseline import global_baseline
+from app.services.llm.service import llm_service
 
 router = APIRouter(prefix="/simulate", tags=["Attack Simulation"])
 
@@ -70,7 +71,8 @@ class SimulateResponse(BaseModel):
     alerts_generated: int
     alerts: list[StandardAlert]
     alert: Optional[StandardAlert] = None
-    ai_analysis: Optional[AIAnalysis]
+    ai_analysis: Optional[AIAnalysis] = None
+    llm: Optional[dict[str, Any]] = None
     simulated: bool = True
     disclaimer: str = (
         "Authorized demo telemetry only. "
@@ -332,6 +334,11 @@ async def run_simulation(req: SimulateRequest) -> SimulateResponse:
         if alert:
             alerts.append(alert)
 
+    # LLM explanation layer: purely advisory, zero modification to alert data
+    llm_result: Optional[dict[str, Any]] = None
+    if alerts:
+        llm_result = await llm_service.explain(alerts[0].model_dump())
+
     return SimulateResponse(
         attack_type=req.mode == "chain" and "FULL_CHAIN" or req.attack_type,
         mode=req.mode,
@@ -340,4 +347,5 @@ async def run_simulation(req: SimulateRequest) -> SimulateResponse:
         alerts=alerts,
         alert=alerts[0] if alerts else None,
         ai_analysis=ai_analysis,
+        llm=llm_result,
     )

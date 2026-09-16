@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { TreePine, Waypoints, TrendingUp, Layers, CheckCircle2 } from "lucide-react";
-import { AIAnalysis } from "@/lib/api";
+import { TreePine, Waypoints, TrendingUp, Layers, CheckCircle2, Bot, ShieldCheck, Sparkles } from "lucide-react";
+import { AIAnalysis, LLMAnalysis } from "@/lib/api";
 
 interface SimulationAIAnalysisProps {
   analysis: AIAnalysis;
   attackType: string;
+  llm?: LLMAnalysis | null;
 }
 
 function ScoreBar({ value }: { value: number }) {
@@ -70,11 +71,11 @@ function ModelRow({ icon, label, sublabel, value, tag, iconColor }: ModelRowProp
   );
 }
 
-export function SimulationAIAnalysis({ analysis, attackType }: SimulationAIAnalysisProps) {
+export function SimulationAIAnalysis({ analysis, attackType, llm }: SimulationAIAnalysisProps) {
   return (
-    <div className="rounded-xl border border-cyan-500/20 bg-[#060C1E] p-4 mt-4">
+    <div className="rounded-xl border border-cyan-500/20 bg-[#060C1E] p-4 mt-4 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <Layers className="h-3.5 w-3.5 text-cyan-400" />
           <span className="font-mono text-xs font-bold text-cyan-300 uppercase tracking-wider">
@@ -140,7 +141,7 @@ export function SimulationAIAnalysis({ analysis, attackType }: SimulationAIAnaly
 
       {/* Fired Detector Signals */}
       {analysis.detector_signals.length > 0 && (
-        <div className="mt-3">
+        <div>
           <p className="font-mono text-[9px] text-slate-600 uppercase tracking-wider mb-1.5">
             Fired Detector Signals
           </p>
@@ -157,12 +158,57 @@ export function SimulationAIAnalysis({ analysis, attackType }: SimulationAIAnaly
         </div>
       )}
 
-      {/* Verification note */}
-      <div className="mt-3 flex items-center gap-1.5 border-t border-slate-800/60 pt-2">
-        <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-500" />
-        <p className="font-mono text-[9px] text-slate-600">
-          All values from live pipeline run — zero hard-coded values
-        </p>
+      {/* LLM Explanation Panel */}
+      {llm && (
+        <div className="rounded-lg border border-purple-500/30 bg-[#0B091B] p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="h-3.5 w-3.5 text-purple-400" />
+              <span className="font-mono text-[11px] font-bold text-purple-300 uppercase tracking-wider">
+                LLM Incident Explanation
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] text-slate-400">
+                Provider: <strong className="text-white">{llm.provider.toUpperCase()}</strong>
+              </span>
+              {llm.status === "success" ? (
+                <span className="flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  ✓ LIVE ({llm.model || "Ollama"})
+                </span>
+              ) : (
+                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-amber-400">
+                  ⚠ OFFLINE FALLBACK
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded border border-slate-800/90 bg-[#060412] p-2.5 text-slate-300 font-sans text-xs leading-relaxed whitespace-pre-wrap">
+            {llm.explanation}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-purple-900/30 pt-2 text-[9px] font-mono text-slate-500">
+            <div className="flex items-center gap-1.5 text-purple-300/80">
+              <Sparkles className="h-2.5 w-2.5" />
+              <span>Advisory post-alert briefing only — zero active mitigation authority</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Security Boundary Banner */}
+      <div className="flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-950/10 px-3 py-2 text-[10px] font-mono">
+        <div className="flex items-center gap-2 text-emerald-400">
+          <ShieldCheck className="h-3.5 w-3.5" />
+          <span className="font-bold">SECURITY BOUNDARY ENFORCED</span>
+        </div>
+        <div className="flex items-center gap-3 text-slate-400">
+          <span>Passive <strong className="text-emerald-400">✓</strong></span>
+          <span>Read-only <strong className="text-emerald-400">✓</strong></span>
+          <span>Alert-only <strong className="text-emerald-400">✓</strong></span>
+        </div>
       </div>
     </div>
   );

@@ -152,13 +152,22 @@ export interface AIAnalysis {
   detector_signals: string[];
 }
 
+export interface LLMAnalysis {
+  provider: string;
+  model: string | null;
+  status: "success" | "fallback";
+  explanation: string;
+}
+
 export interface SimulateResult {
   attack_type: string;
   mode: string;
   flows_sent: number;
   alerts_generated: number;
   alerts: ThreatAlert[];
+  alert?: ThreatAlert;
   ai_analysis: AIAnalysis | null;
+  llm?: LLMAnalysis | null;
   simulated: boolean;
   disclaimer: string;
 }

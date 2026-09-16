@@ -18,14 +18,16 @@ class Settings(BaseSettings):
 
     # LLM Explainer Provider Settings (Ollama / Local / OpenAI / Gemini / Fallback)
     llm_provider: str = "fallback"  # fallback | ollama | openai | gemini
+    llm_model: str = "llama3.2"
+    ollama_base_url: str = "http://localhost:11434"
     ollama_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3"
-    openai_api_key: str | None = None
+    ollama_model: str = "llama3.2"
+    openai_api_key: Optional[str] = None
     openai_base_url: str = "https://api.openai.com/v1"
     openai_model: str = "gpt-4o-mini"
-    gemini_api_key: str | None = None
+    gemini_api_key: Optional[str] = None
     gemini_model: str = "gemini-1.5-flash"
-    llm_timeout_seconds: float = 2.5
+    llm_timeout_seconds: float = 30.0
 
     model_config = SettingsConfigDict(
         env_file=".env",

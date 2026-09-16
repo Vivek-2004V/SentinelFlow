@@ -29,8 +29,8 @@ from app.schemas.alert import EvidenceItem, SeverityLevel, StandardAlert
 from app.schemas.detection import ThreatType
 from app.services.llm_explainer import MITRE_MAPPINGS, generate_alert_explanation
 
-# Active mitigation terms forbidden in SentinelFlow (passive-only architecture)
-FORBIDDEN_ACTIVE_TERMS = [
+# Active mitigation & forbidden claims in SentinelFlow (passive-only architecture)
+FORBIDDEN_CLAIMS = [
     "blocked the attacker",
     "firewall blocked",
     "ip was banned",
@@ -40,7 +40,22 @@ FORBIDDEN_ACTIVE_TERMS = [
     "quarantined endpoint",
     "blackholed traffic",
     "inline prevention executed",
+    "payload decrypted",
+    "active scan",
+    "mitigation applied",
 ]
+FORBIDDEN_ACTIVE_TERMS = FORBIDDEN_CLAIMS
+
+
+def validate_llm_explanation(text: str) -> list[str]:
+    """
+    Evaluates LLM output against SentinelFlow safety boundary.
+    Returns any forbidden active mitigation or fabrication claims found.
+    """
+    lower = text.lower()
+    violations = [claim for claim in FORBIDDEN_CLAIMS if claim in lower]
+    return violations
+
 
 
 def test_grounding_and_safety(alert: StandardAlert) -> Dict[str, Any]:

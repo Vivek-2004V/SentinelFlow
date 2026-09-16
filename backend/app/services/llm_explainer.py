@@ -146,13 +146,9 @@ FORBIDDEN_ACTIVE_TERMS = [
 ]
 
 
-def _sanitize_active_mitigation(text: str) -> str:
-    """Removes or softens any forbidden active mitigation claims."""
-    sanitized = text
-    for term in FORBIDDEN_ACTIVE_TERMS:
-        if term in sanitized.lower():
-            sanitized = sanitized.replace(term, "passively alerted on")
-    return sanitized
+from app.services.llm.service import sanitize_active_mitigation
+
+_sanitize_active_mitigation = sanitize_active_mitigation
 
 
 def _generate_deterministic_explanation(alert: StandardAlert) -> AlertExplanation:
