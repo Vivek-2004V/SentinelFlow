@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import io
 import tempfile
-import pytest
+
 from fastapi.testclient import TestClient
 from scapy.all import IP, TCP, UDP, wrpcap
 

@@ -7,10 +7,10 @@
     "controlled": "PASS"
   },
   "models": {
-    "random_forest": "LOADED",
-    "isolation_forest": "LOADED",
-    "feature_columns": "LOADED",
-    "label_encoder": "LOADED"
+    "random_forest": "PASS",
+    "isolation_forest": "PASS",
+    "feature_columns": "PASS",
+    "label_encoder": "PASS"
   },
   "dataset": {
     "train": true,
@@ -25,8 +25,8 @@
     "validation_macro_f1": 1.0,
     "test_macro_f1": 1.0,
     "generalization_delta": 0.0,
-    "throughput_fps": 37784,
-    "latency_us": 26.47,
+    "throughput_fps": 41071,
+    "latency_us": 24.35,
     "per_class_f1": {
       "BENIGN": 1.0,
       "C2_BEACON": 1.0,
@@ -50,5 +50,14 @@
   "release_ready": true,
   "release_status": "READY",
   "failure_reasons": [],
-  "timestamp": "2026-09-16T13:52:29.291702Z"
+  "timestamp": "2026-09-16T16:09:54.918905Z",
+  "raw_gates": {
+    "01 PREFLIGHT (Data)": "PASS",
+    "02 SMOKE (Inference)": "PASS",
+    "03 SIGNAL (Validation)": "PASS",
+    "04 CONTROLLED (Unseen)": "PASS",
+    "LLM Grounding & Safety": "PASS",
+    "Security Boundary": "PASS",
+    "Regression Baseline": "PASS"
+  }
 }

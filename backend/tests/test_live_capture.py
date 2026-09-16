@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import time
-import pytest
-from scapy.all import DNS, DNSQR, IP, TCP, UDP
 
 from app.ingest.flow_builder import FlowBuilder
 

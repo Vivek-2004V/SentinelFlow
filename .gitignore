@@ -51,6 +51,10 @@ models/*.onnx
 !models/evaluation_baseline.json
 !models/README.md
 !models/.gitkeep
+!models/random_forest.joblib
+!models/isolation_forest.joblib
+!models/feature_columns.joblib
+!models/label_encoder.joblib
 
 # OS
 .DS_Store

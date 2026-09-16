@@ -27,6 +27,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Train Deterministic Models
+        run: |
+          python -m app.ml.train --dataset ../data/sample/ci_smoke.csv --output-dir ../models
+
       - name: Run tests
         run: pytest
 

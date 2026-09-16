@@ -4,7 +4,7 @@ import logging
 import time
 from typing import List, Tuple
 
-from scapy.all import DNS, DNSQR, IP, IPv6, PcapReader, TCP, UDP
+from scapy.all import DNS, IP, TCP, UDP, IPv6, PcapReader
 from scapy.layers.tls.all import TLS_Ext_ServerName, TLSClientHello
 
 from app.ingest.flow_builder import FlowBuilder
