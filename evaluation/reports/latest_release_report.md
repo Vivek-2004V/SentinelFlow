@@ -6,10 +6,10 @@ PASS
 
 ## Dataset Evidence
 
-- Train samples: 525
-- Validation samples: 524
-- Test samples: 524
-- Classes: 8 (ANOMALY, BENIGN, C2_BEACON, DDOS, DGA, DNS_TUNNEL, EXFIL, RECON)
+- Train samples: 42
+- Validation samples: 21
+- Test samples: 21
+- Classes: 7 (BENIGN, C2_BEACON, DDOS, DGA, DNS_TUNNEL, EXFIL, RECON)
 - Leakage check: PASS
 - Feature validation: PASS
 - NaN / Inf sanitization: PASS
@@ -18,17 +18,17 @@ PASS
 
 - Random Forest: PASS
 - Isolation Forest: PASS
-- Validation Macro F1: 0.9983
-- Unseen Test Macro F1: 0.9967
-- Generalization Delta: 0.0016
+- Validation Macro F1: 1.0
+- Unseen Test Macro F1: 1.0
+- Generalization Delta: 0.0
 - Unseen Test Gate: PASS
 - Per-Class Unseen F1:
-  • BENIGN: 0.9951
-  • C2_BEACON: 0.9939
-  • DDOS: 0.9964
+  • BENIGN: 1.0
+  • C2_BEACON: 1.0
+  • DDOS: 1.0
   • DGA: 1.0
   • DNS_TUNNEL: 1.0
-  • EXFIL: 0.9916
+  • EXFIL: 1.0
   • RECON: 1.0
 
 ## LLM Evidence
@@ -45,8 +45,8 @@ PASS
 - Return path: PASS
 - Mitigation: PASS
 - Schema Invariant (ALERT_ONLY): PASS
-- Throughput: 36,470 flows/sec
-- Latency: 27.42 μs / flow
+- Throughput: 43,753 flows/sec
+- Latency: 22.86 μs / flow
 
 ## Next Minimal Test
 

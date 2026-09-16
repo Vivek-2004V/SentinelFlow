@@ -104,7 +104,7 @@ def test_sanitize_active_mitigation():
 
 def test_llm_fallback_on_unreachable_provider():
     from app.core.config import settings
-    
+
     # Save original settings
     orig_provider = settings.llm_provider
     orig_url = settings.ollama_url

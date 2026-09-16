@@ -1,7 +1,6 @@
 """
 Unit tests for AI Quality Gate Evaluation API endpoints.
 """
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app

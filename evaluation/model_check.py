@@ -60,6 +60,17 @@ def run_model_check() -> Dict[str, Any]:
     feat_path = MODELS_DIR / "feature_columns.joblib"
     enc_path = MODELS_DIR / "label_encoder.joblib"
 
+    # Auto-train models if missing but train.csv exists
+    if not (rf_path.exists() and if_path.exists() and feat_path.exists() and enc_path.exists()):
+        train_path = DATA_DIR / "train.csv"
+        if train_path.exists():
+            try:
+                sys.path.insert(0, str(PROJECT_ROOT / "backend"))
+                from app.ml.train import train_models
+                train_models(dataset_path=train_path, output_dir=MODELS_DIR)
+            except Exception as e:
+                report["errors"].append(f"Auto-train attempt failed: {e}")
+
     # 1. Model Loading Check
     for p in [rf_path, if_path, feat_path, enc_path]:
         if not p.exists():
@@ -146,6 +157,38 @@ def run_model_check() -> Dict[str, Any]:
             f"Validation F1 was {report['validation_macro_f1']}, but Unseen Test F1 dropped to "
             f"{report['test_macro_f1']} (Drop = {round(delta * 100, 2)}%). Model overfitted."
         )
+
+    # 5. Baseline Regression Check against models/evaluation_baseline.json
+    baseline_file = MODELS_DIR / "evaluation_baseline.json"
+    if baseline_file.exists():
+        try:
+            import json
+            with open(baseline_file) as bf:
+                bdata = json.load(bf)
+            base_f1 = bdata.get("random_forest", {}).get("macro_f1", 0.85)
+            max_regression = bdata.get("thresholds", {}).get("max_allowed_regression", 0.05)
+            min_f1 = bdata.get("thresholds", {}).get("min_macro_f1", 0.70)
+
+            # Check minimum absolute threshold
+            if report["test_macro_f1"] < min_f1:
+                report["unseen_test_status"] = "FAIL"
+                report["status"] = "FAIL"
+                report["errors"].append(
+                    f"Test Macro F1 {report['test_macro_f1']:.3f} below minimum threshold {min_f1:.3f}"
+                )
+
+            # Check regression against baseline
+            drop_from_baseline = base_f1 - report["test_macro_f1"]
+            if drop_from_baseline > max_regression:
+                report["unseen_test_status"] = "FAIL"
+                report["status"] = "FAIL"
+                report["errors"].append(
+                    f"Model regression detected: Baseline F1 was {base_f1:.3f}, but current Test F1 is "
+                    f"{report['test_macro_f1']:.3f} (Drop: {drop_from_baseline:.3f} > allowed {max_regression:.3f})"
+                )
+        except Exception as exc:
+            report["errors"].append(f"Baseline comparison failed: {exc}")
+
 
     # Minority class threshold check
     for c in ["C2_BEACON", "DGA", "DNS_TUNNEL", "EXFIL"]:

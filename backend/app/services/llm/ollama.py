@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import httpx
 from typing import Any
+
+import httpx
 
 from app.core.config import settings
 from app.services.llm.base import LLMProvider

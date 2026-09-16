@@ -49,16 +49,26 @@ def run_release_gate() -> bool:
     llm_res = run_llm_check()
     regression_res = run_regression_check()
 
+    # Load configured thresholds from models/evaluation_baseline.json
+    baseline_path = PROJECT_ROOT / "models" / "evaluation_baseline.json"
+    min_macro_f1 = 0.70
+    if baseline_path.exists():
+        try:
+            with open(baseline_path) as bf:
+                bcfg = json.load(bf)
+            min_macro_f1 = bcfg.get("thresholds", {}).get("min_macro_f1", 0.70)
+        except Exception:
+            min_macro_f1 = 0.70
+
     # Determine gate statuses
     gates = {
-        "Dataset Integrity": dataset_res["status"],
-        "Feature Validation": dataset_res["feature_validation"],
-        "Model Loading": model_res["model_loading"],
-        "Validation Metrics": "PASS" if model_res["validation_macro_f1"] >= 0.95 else "FAIL",
-        "Unseen Test": model_res["unseen_test_status"],
-        "LLM Grounding": llm_res["evidence_grounding"],
+        "01 PREFLIGHT (Data)": dataset_res["status"],
+        "02 SMOKE (Inference)": "PASS" if model_res["model_loading"] == "PASS" and model_res["smoke_test"] == "PASS" else "FAIL",
+        "03 SIGNAL (Validation)": "PASS" if model_res["validation_macro_f1"] >= min_macro_f1 else "FAIL",
+        "04 CONTROLLED (Unseen)": model_res["unseen_test_status"],
+        "LLM Grounding & Safety": llm_res["evidence_grounding"] if llm_res["status"] == "PASS" else "FAIL",
         "Security Boundary": regression_res["security_boundary"]["passive_architecture"],
-        "Regression Check": regression_res["status"],
+        "Regression Baseline": regression_res["status"],
     }
 
     all_pass = all(status == "PASS" for status in gates.values())

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from evaluation.llm_check import validate_llm_explanation
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
@@ -8,7 +9,6 @@ from app.main import app
 from app.schemas.alert import EvidenceItem, SeverityLevel, StandardAlert
 from app.services.llm.fallback import FallbackProvider
 from app.services.llm.service import LLMService, llm_service
-from evaluation.llm_check import validate_llm_explanation
 
 client = TestClient(app)
 

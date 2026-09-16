@@ -6,8 +6,8 @@ for the SOC dashboard.
 """
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from fastapi import APIRouter, status
 

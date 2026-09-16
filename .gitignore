@@ -37,6 +37,7 @@ data/sample/*
 !data/sample/.gitkeep
 !data/sample/demo_flows.csv
 !data/sample/sample_flows.json
+!data/sample/ci_smoke.csv
 
 # Database
 *.db
@@ -47,6 +48,9 @@ data/sample/*
 models/*.pkl
 models/*.joblib
 models/*.onnx
+!models/evaluation_baseline.json
+!models/README.md
+!models/.gitkeep
 
 # OS
 .DS_Store
@@ -59,6 +63,13 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Evaluation reports (track only latest)
+evaluation/reports/evaluation_*.json
+evaluation/reports/release_report_*.md
+!evaluation/reports/latest_evaluation.json
+!evaluation/reports/latest_release_report.md
+!evaluation/reports/.gitkeep
 
 # Secrets
 *.pem

@@ -1,7 +1,6 @@
 """
 Unit tests for Attack Simulation Lab endpoint (POST /api/v1/simulate).
 """
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app

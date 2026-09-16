@@ -18,15 +18,15 @@ from typing import Any, Literal, Optional
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from app.schemas.flow import RawFlow
-from app.schemas.alert import StandardAlert
-from app.services.pipeline import pipeline_orchestrator
-from app.detectors.registry import detector_registry
-from app.features.flow import extract_flow_features
-from app.features.dns import extract_dns_features
-from app.features.tls import extract_tls_features
 from app.detectors.baseline import global_baseline
+from app.detectors.registry import detector_registry
+from app.features.dns import extract_dns_features
+from app.features.flow import extract_flow_features
+from app.features.tls import extract_tls_features
+from app.schemas.alert import StandardAlert
+from app.schemas.flow import RawFlow
 from app.services.llm.service import llm_service
+from app.services.pipeline import pipeline_orchestrator
 
 router = APIRouter(prefix="/simulate", tags=["Attack Simulation"])
 

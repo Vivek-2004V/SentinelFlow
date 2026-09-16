@@ -11,8 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Tuple
 
-from app.schemas.detection import DetectionResult as SchemaDetectionResult
-from app.schemas.detection import ThreatType
+from app.schemas.detection import DetectionResult as SchemaDetectionResult, ThreatType
 from app.schemas.flow import FlowFeatures
 
 

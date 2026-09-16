@@ -272,5 +272,45 @@ def train_isolation_forest(dataset_path: str = "data/processed/train.csv") -> Is
     return joblib.load(MODEL_DIR / "isolation_forest.joblib")
 
 
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Train SentinelFlow ML Models")
+    parser.add_argument("--dataset", type=str, default=None, help="Path to input CSV dataset (e.g. ci_smoke.csv)")
+    parser.add_argument("--data-dir", type=str, default=None, help="Path to directory containing train.csv, validation.csv, test.csv")
+    parser.add_argument("--output-dir", type=str, default=None, help="Directory to save model artifacts")
+    args = parser.parse_args()
+
+    out_dir = Path(args.output_dir) if args.output_dir else MODEL_DIR
+
+    if args.dataset:
+        dataset_path = Path(args.dataset)
+        if not dataset_path.exists():
+            raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
+        df = pd.read_csv(dataset_path)
+        data_target_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
+        data_target_dir.mkdir(parents=True, exist_ok=True)
+
+        if "run_id" in df.columns:
+            train_df = df[df["run_id"] == "run_a"].drop(columns=["run_id"])
+            val_df = df[df["run_id"] == "run_b"].drop(columns=["run_id"])
+            test_df = df[df["run_id"] == "run_c"].drop(columns=["run_id"])
+        else:
+            from sklearn.model_selection import train_test_split
+            strat = df["threat_class"] if df["threat_class"].nunique() > 1 else None
+            train_df, rem_df = train_test_split(df, test_size=0.3, random_state=42, stratify=strat)
+            strat_rem = rem_df["threat_class"] if rem_df["threat_class"].nunique() > 1 else None
+            val_df, test_df = train_test_split(rem_df, test_size=0.5, random_state=42, stratify=strat_rem)
+
+        train_df.to_csv(data_target_dir / "train.csv", index=False)
+        val_df.to_csv(data_target_dir / "validation.csv", index=False)
+        test_df.to_csv(data_target_dir / "test.csv", index=False)
+
+        train_and_evaluate(data_dir=data_target_dir, output_dir=out_dir)
+    else:
+        d_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
+        train_and_evaluate(data_dir=d_dir, output_dir=out_dir)
+
+
 if __name__ == "__main__":
-    train_and_evaluate()
+    main()
+
