@@ -9,3 +9,4 @@ scikit-learn
 joblib
 python-multipart
 httpx
+scapy>=2.5.0

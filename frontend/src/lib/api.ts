@@ -265,3 +265,58 @@ export async function runEvaluation(): Promise<EvaluationReport> {
   }
   return res.json();
 }
+
+// ─── PCAP Telemetry Analysis ──────────────────────────────────────────────────
+
+export interface PcapSecurityBoundary {
+  passive_capture: boolean;
+  read_only: boolean;
+  payload_decrypted: boolean;
+  active_probe: boolean;
+  active_scan: boolean;
+  packet_mitigation: boolean;
+  action: string;
+}
+
+export interface PcapAiAnalysis {
+  random_forest_detected: number;
+  isolation_forest_anomalies: number;
+  top_threat: string;
+}
+
+export interface PcapAnalysisResult {
+  filename: string;
+  mode: string;
+  packets_analyzed: number;
+  flows_reconstructed: number;
+  threats_detected: number;
+  threat_breakdown: Record<string, number>;
+  alerts: ThreatAlert[];
+  ai_analysis: PcapAiAnalysis;
+  llm_advisory?: string | null;
+  security: PcapSecurityBoundary;
+  disclaimer: string;
+}
+
+export async function analyzePcap(file: File): Promise<PcapAnalysisResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_URL}/api/v1/pcap/analyze`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let detail = `PCAP analysis failed (HTTP ${res.status})`;
+    try {
+      const err = await res.json();
+      if (err.detail) detail = err.detail;
+    } catch {
+      // ignore
+    }
+    throw new Error(detail);
+  }
+
+  return res.json();
+}

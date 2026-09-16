@@ -16,6 +16,7 @@ import { MLIntelligence } from "@/components/dashboard/MLIntelligence";
 import { AdaptiveBaseline } from "@/components/dashboard/AdaptiveBaseline";
 import { AttackSimulationLab } from "@/components/dashboard/AttackSimulationLab";
 import { AIQualityGate } from "@/components/dashboard/AIQualityGate";
+import { PcapUploader } from "@/components/dashboard/PcapUploader";
 import {
   ConnectionMode,
   DashboardMetrics,
@@ -166,6 +167,11 @@ export default function Home() {
           {/* AI Quality Gate (Model & Dataset Verification) */}
           <section id="quality-gate">
             <AIQualityGate />
+          </section>
+
+          {/* Real Network Telemetry — PCAP Ingest & Analysis */}
+          <section id="pcap">
+            <PcapUploader onAlertsGenerated={handleSimulationAlerts} />
           </section>
 
           {/* Attack Simulation Lab */}
