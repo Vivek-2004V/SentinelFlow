@@ -69,6 +69,7 @@ class SimulateResponse(BaseModel):
     flows_sent: int
     alerts_generated: int
     alerts: list[StandardAlert]
+    alert: Optional[StandardAlert] = None
     ai_analysis: Optional[AIAnalysis]
     simulated: bool = True
     disclaimer: str = (
@@ -103,19 +104,20 @@ def _make_ddos_flow(src_ip: str, dst_ip: str) -> RawFlow:
 
 
 def _make_c2_flow(src_ip: str, dst_ip: str) -> RawFlow:
-    """C2 Beacon: periodic low-volume outbound, high periodicity score."""
+    """C2 Beacon: periodic low-volume heartbeat with high periodicity."""
     return RawFlow(
         src_ip=src_ip,
         dst_ip=dst_ip,
         src_port=None,
-        dst_port=443,
+        dst_port=8443,
         proto="TCP",
-        bytes_sent=4_800,
-        bytes_recv=1_200,
-        pkts_sent=32,
-        pkts_recv=8,
+        bytes_sent=150,
+        bytes_recv=120,
+        pkts_sent=1,
+        pkts_recv=1,
         start_time=datetime.utcnow(),
-        duration_seconds=300.0,
+        duration_seconds=0.1,
+        periodicity_score=0.96,
         sensor_id="sim-lab",
         source_format="simulation",
     )
@@ -135,7 +137,7 @@ def _make_dga_flow(src_ip: str, dst_ip: str) -> RawFlow:
         pkts_recv=1,
         start_time=datetime.utcnow(),
         duration_seconds=0.05,
-        dns_query="x7kq91m2z8vp3n.info",  # high entropy, high digit ratio
+        dns_query="x7kq91m2z8vp3n99w4b1c8.info",  # high entropy, high digit ratio, length 27
         sensor_id="sim-lab",
         source_format="simulation",
     )
@@ -149,33 +151,32 @@ def _make_dns_tunnel_flow(src_ip: str, dst_ip: str) -> RawFlow:
         src_port=None,
         dst_port=53,
         proto="UDP",
-        bytes_sent=2_048,
+        bytes_sent=120_000,
         bytes_recv=512,
         pkts_sent=12,
         pkts_recv=4,
         start_time=datetime.utcnow(),
-        duration_seconds=8.0,
-        # Long encoded-looking subdomain chain typical of DNS exfil / tunnelling
-        dns_query="aGVsbG8td29ybGQ.c2VjcmV0LWRhdGE5.dHVubmVsLWV4ZmlsLnR4.evil.com",
+        duration_seconds=1.0,
+        dns_query="u9x4k1m8p2q5w7z3.b6d8e2f4a1c3h5j7.l9n1o3r5t7v9x2z4.tunnel-endpoint.net",
         sensor_id="sim-lab",
         source_format="simulation",
     )
 
 
 def _make_recon_flow(src_ip: str, dst_ip: str) -> RawFlow:
-    """Recon: rapid port sweep, many unique destination ports."""
+    """Recon: rapid port sweep on sensitive port."""
     return RawFlow(
         src_ip=src_ip,
         dst_ip=dst_ip,
         src_port=None,
-        dst_port=1,
+        dst_port=22,
         proto="TCP",
-        bytes_sent=64_000,
-        bytes_recv=2_000,
-        pkts_sent=1_200,
-        pkts_recv=50,
+        bytes_sent=60,
+        bytes_recv=0,
+        pkts_sent=1,
+        pkts_recv=0,
         start_time=datetime.utcnow(),
-        duration_seconds=12.0,
+        duration_seconds=0.01,
         sensor_id="sim-lab",
         source_format="simulation",
     )
@@ -337,5 +338,6 @@ async def run_simulation(req: SimulateRequest) -> SimulateResponse:
         flows_sent=len(_CHAIN_SEQUENCE) if req.mode == "chain" else 1,
         alerts_generated=len(alerts),
         alerts=alerts,
+        alert=alerts[0] if alerts else None,
         ai_analysis=ai_analysis,
     )

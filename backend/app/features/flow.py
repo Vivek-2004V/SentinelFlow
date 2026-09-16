@@ -31,4 +31,5 @@ def extract_flow_features(flow: RawFlow) -> FlowFeatures:
         dst_port=flow.dst_port or 0,
         proto=flow.proto,
         start_time=flow.start_time,
+        periodicity_score=flow.periodicity_score or 0.0,
     )

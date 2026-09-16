@@ -89,3 +89,53 @@ def test_llm_explanation_api_endpoint():
     # 404 test for non-existent alert
     not_found = client.get("/api/v1/alerts/non-existent-uuid/explanation")
     assert not_found.status_code == 404
+
+
+def test_sanitize_active_mitigation():
+    from app.services.llm_explainer import _sanitize_active_mitigation
+
+    sample_bad_text = "The firewall blocked the attacker and the connection terminated while quarantined endpoint was isolated."
+    sanitized = _sanitize_active_mitigation(sample_bad_text)
+    assert "firewall blocked" not in sanitized
+    assert "connection terminated" not in sanitized
+    assert "quarantined endpoint" not in sanitized
+    assert "passively alerted on" in sanitized
+
+
+def test_llm_fallback_on_unreachable_provider():
+    from app.core.config import settings
+    
+    # Save original settings
+    orig_provider = settings.llm_provider
+    orig_url = settings.ollama_url
+
+    try:
+        # Point to unreachable port with fast timeout
+        settings.llm_provider = "ollama"
+        settings.ollama_url = "http://127.0.0.1:59999"
+        settings.llm_timeout_seconds = 0.5
+
+        alert = StandardAlert(
+            flow_id="F-FALLBACK-01",
+            src_ip="192.168.1.100",
+            dst_ip="10.0.0.5",
+            threat_class="DGA",
+            severity=SeverityLevel.HIGH,
+            confidence=0.85,
+            attack_chain=["DGA"],
+            evidence=[
+                EvidenceItem(feature="domain_entropy", value=4.12, reason="High Shannon entropy")
+            ],
+            action="ALERT_ONLY",
+        )
+
+        explanation = generate_alert_explanation(alert)
+        assert explanation is not None
+        assert explanation.alert_id == alert.flow_id
+        assert explanation.threat_type == "DGA"
+        assert "DGA" in explanation.executive_summary
+        assert "T1568" in str(explanation.mitre_tactics)
+    finally:
+        settings.llm_provider = orig_provider
+        settings.ollama_url = orig_url
+

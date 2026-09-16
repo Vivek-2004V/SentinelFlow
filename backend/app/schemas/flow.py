@@ -86,6 +86,7 @@ class RawFlow(BaseModel):
     tls_sni: Optional[str] = None
     ja3_hash: Optional[str] = None        # TLS client fingerprint
     quic_version: Optional[str] = None
+    periodicity_score: Optional[float] = None
 
     # Ingest metadata
     sensor_id: str = Field("default", description="Which sensor collected this")
