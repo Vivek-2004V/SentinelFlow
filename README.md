@@ -340,11 +340,59 @@ SentinelFlow uses **exactly two machine learning models** working alongside dete
 - **Byte Ratio Asymmetry** — Upload/download ratio imbalances
 - **Adaptive Baseline Z-Score** — Dynamic standard deviation distance (Z = |x − μ| / σ)
 
-### 4. LLM Invariant
+### 4. LLM Invariant & Non-Authority Boundary
 
 > [!IMPORTANT]
 > **LLMs are NEVER used for primary threat detection or security decisions.**
-> If an LLM integration is present, its role is strictly limited to generating plain-English explanations of deterministic evidence for SOC analysts. The core detection and correlation pipeline remains 100% deterministic, explainable, and reproducible.
+> - The LLM **cannot create alerts** (detection is 100% deterministic).
+> - The LLM **cannot decide severity or alter confidence** (calculated by Threat Fusion).
+> - The LLM **cannot block or mitigate** (SentinelFlow is strictly passive).
+> - Its sole role is generating plain-English advisory incident briefings of already-generated evidence for SOC analysts.
+
+### 5. Evidence-Driven AI Evaluation Agent & Quality Gate
+
+Adapted from the evidence-first methodology of [Agency Agents](https://github.com/msitarzewski/agency-agents), SentinelFlow incorporates a standalone AI Evaluation Agent (`agents/sentinelflow-ai-evaluation.md`) and native Python verification suite (`evaluation/`):
+
+```text
+    REAL ML                REAL LLM               EVALUATION AGENT             SECURITY
+┌──────────────┐       ┌──────────────┐       ┌──────────────────────┐     ┌──────────────┐
+│Random Forest │       │Evidence      │       │• Dataset QA          │     │              │
+│      +       │  ──►  │Explainer     │  ──►  │• 4-Gate Protocol     │ ──► │  ALERT_ONLY  │
+│Isolation     │       │(Advisory     │       │• Zero Leakage Audit  │     │ (Unidirect.  │
+│Forest        │       │ Only)        │       │• Regression Testing  │     │   Diode)     │
+└──────────────┘       └──────────────┘       │• Release Gate        │     └──────────────┘
+                                              └──────────────────────┘
+```
+
+> [!NOTE]
+> **Methodology, Not Runtime Dependency**: Agency Agents is used as a development and evaluation governance framework. SentinelFlow does **not** install or rely on external agent packages at runtime. The evaluation suite runs natively via standard Python scientific libraries (`scikit-learn`, `pandas`, `pydantic`).
+
+#### The Four Gates Protocol:
+1. **Gate 1 (PREFLIGHT)**: Canonical 24-feature schema match, zero NaN/Inf, zero attacker IP leakage across splits (`Attacker_IPs_Train ∩ Attacker_IPs_Test = ∅`).
+2. **Gate 2 (SMOKE)**: 10–100 sample end-to-end unpickling, feature extraction, RF + IF inference, and alert schema validation.
+3. **Gate 3 (SIGNAL)**: Validation dataset benchmark (`validation.csv`) with full confusion matrix and per-threat F1 scoring.
+4. **Gate 4 (CONTROLLED)**: Generalization audit on unseen held-out data (`test.csv`). Flags **FAIL** if test performance drops relative to validation (e.g. Train 0.99 ➔ Val 0.98 ➔ Test 0.61).
+
+#### Run the AI Quality Gate:
+```bash
+backend/.venv/bin/python evaluation/release_gate.py
+```
+```text
+╔════════════════════════════════════════╗
+║      SENTINELFLOW AI QUALITY GATE      ║
+╠════════════════════════════════════════╣
+║ Dataset Integrity       ✓ PASS         ║
+║ Feature Validation      ✓ PASS         ║
+║ Model Loading           ✓ PASS         ║
+║ Validation Metrics      ✓ PASS         ║
+║ Unseen Test             ✓ PASS         ║
+║ LLM Grounding           ✓ PASS         ║
+║ Security Boundary       ✓ PASS         ║
+║ Regression Check        ✓ PASS         ║
+╠════════════════════════════════════════╣
+║ RELEASE STATUS          ✓ READY        ║
+╚════════════════════════════════════════╝
+```
 
 ---
 
