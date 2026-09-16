@@ -15,6 +15,7 @@ import { SensorStatus } from "@/components/dashboard/SensorStatus";
 import { MLIntelligence } from "@/components/dashboard/MLIntelligence";
 import { AdaptiveBaseline } from "@/components/dashboard/AdaptiveBaseline";
 import { AttackSimulationLab } from "@/components/dashboard/AttackSimulationLab";
+import { AIQualityGate } from "@/components/dashboard/AIQualityGate";
 import {
   ConnectionMode,
   DashboardMetrics,
@@ -161,6 +162,11 @@ export default function Home() {
 
           {/* Hero Data-Flow Visual (Unidirectional Invariant) */}
           <HeroDataFlow />
+
+          {/* AI Quality Gate (Model & Dataset Verification) */}
+          <section id="quality-gate">
+            <AIQualityGate />
+          </section>
 
           {/* Attack Simulation Lab */}
           <section id="simulation">

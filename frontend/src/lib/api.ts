@@ -191,3 +191,68 @@ export async function runAttackChain(
   }
   return res.json();
 }
+
+// ─── AI Quality Gate ──────────────────────────────────────────────────────────
+
+export interface EvaluationReport {
+  status: "PASS" | "FAIL" | "WARN" | "UNVERIFIED";
+  gates: {
+    preflight: "PASS" | "FAIL" | "WARN" | "UNVERIFIED";
+    smoke: "PASS" | "FAIL" | "WARN" | "UNVERIFIED";
+    signal: "PASS" | "FAIL" | "WARN" | "UNVERIFIED";
+    controlled: "PASS" | "FAIL" | "WARN" | "UNVERIFIED";
+  };
+  models: {
+    random_forest: string;
+    isolation_forest: string;
+    feature_columns: string;
+    label_encoder: string;
+  };
+  dataset: {
+    train: boolean;
+    validation: boolean;
+    test: boolean;
+    leakage: boolean;
+    train_samples: number;
+    validation_samples: number;
+    test_samples: number;
+  };
+  metrics: {
+    validation_macro_f1: number;
+    test_macro_f1: number;
+    generalization_delta: number;
+    throughput_fps: number;
+    latency_us: number;
+    per_class_f1: Record<string, number>;
+  };
+  llm: {
+    grounding: string;
+    safety: string;
+    immutability: string;
+  };
+  security: {
+    passive_only: boolean;
+    return_path_blocked: boolean;
+    action_alert_only: boolean;
+  };
+  release_ready: boolean;
+  release_status: "READY" | "BLOCKED";
+  failure_reasons: string[];
+  timestamp: string;
+}
+
+export async function getEvaluationStatus(): Promise<EvaluationReport> {
+  return apiFetch<EvaluationReport>("/api/v1/evaluation/status");
+}
+
+export async function runEvaluation(): Promise<EvaluationReport> {
+  const res = await fetch(`${API_URL}/api/v1/evaluation/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Evaluation run failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
