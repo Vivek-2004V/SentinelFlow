@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-09-16T18:28:22.994612+00:00",
+  "summary": {
+    "HIGH": 1,
+    "LOW": 3
+  },
+  "findings": [
+    {
+      "id": "DOC-001",
+      "cwe": "CWE-250",
+      "severity": "HIGH",
+      "file": "backend/Dockerfile",
+      "line": 1,
+      "description": "Backend Dockerfile runs as root (missing non-root USER instruction)",
+      "evidence": "No 'USER <username>' directive specified in container build"
+    },
+    {
+      "id": "UPL-003",
+      "cwe": "CWE-434",
+      "severity": "LOW",
+      "file": "backend/app/api/v1/endpoints/pcap.py",
+      "line": 9,
+      "description": "PCAP upload relies solely on filename suffix or mime-type without magic byte header verification",
+      "evidence": "from fastapi import APIRouter, File, HTTPException, UploadFile, status"
+    },
+    {
+      "id": "UPL-003",
+      "cwe": "CWE-434",
+      "severity": "LOW",
+      "file": "backend/app/api/v1/endpoints/pcap.py",
+      "line": 70,
+      "description": "PCAP upload relies solely on filename suffix or mime-type without magic byte header verification",
+      "evidence": "file: UploadFile = File(...),"
+    },
+    {
+      "id": "BND-001",
+      "cwe": "CWE-272",
+      "severity": "LOW",
+      "file": "backend/app/data/generators/recon.py",
+      "line": 4,
+      "description": "Offensive network scanning tool invocation found in simulation/test",
+      "evidence": "Simulates network scanning activity (nmap / masscan / zmap style):"
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ThreatAlert } from "@/lib/types";
+import { ForensicExport } from "@/components/dashboard/ForensicExport";
 
 interface AlertDetailProps {
   alert: ThreatAlert | null;
@@ -141,8 +142,13 @@ export function AlertDetail({ alert, onClose }: AlertDetailProps) {
           </p>
         </div>
 
-        {/* Close Button */}
-        <div className="mt-6 flex justify-end">
+        {/* Close Button + Forensic Export */}
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <ForensicExport
+            report={alert as unknown as Record<string, unknown>}
+            filename={`alert_${alert.flow_id}`}
+            label="Forensic Export"
+          />
           <button
             onClick={onClose}
             className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Header } from "@/components/layout/Header";
 import { NavSection, Sidebar } from "@/components/layout/Sidebar";
 import { HeroDataFlow } from "@/components/dashboard/HeroDataFlow";
@@ -17,6 +17,8 @@ import { AdaptiveBaseline } from "@/components/dashboard/AdaptiveBaseline";
 import { AttackSimulationLab } from "@/components/dashboard/AttackSimulationLab";
 import { AIQualityGate } from "@/components/dashboard/AIQualityGate";
 import { PcapUploader } from "@/components/dashboard/PcapUploader";
+import { LiveNicSniffer } from "@/components/dashboard/LiveNicSniffer";
+import { NetworkTopology } from "@/components/dashboard/NetworkTopology";
 import {
   ConnectionMode,
   DashboardMetrics,
@@ -28,7 +30,13 @@ import {
   DEMO_METRICS,
   DEMO_SYSTEM_STATUS,
 } from "@/lib/demo-data";
-import { fetchDashboardMetrics, fetchRecentAlerts, fetchSystemStatus } from "@/lib/api";
+import {
+  createLiveStream,
+  fetchDashboardMetrics,
+  fetchRecentAlerts,
+  fetchSystemStatus,
+  LiveStreamMetrics,
+} from "@/lib/api";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState<NavSection>("overview");
@@ -41,6 +49,8 @@ export default function Home() {
   const [alerts, setAlerts] = useState<ThreatAlert[]>(DEMO_ALERTS);
   const [metrics, setMetrics] = useState<DashboardMetrics>(DEMO_METRICS);
   const [lastUpdated, setLastUpdated] = useState<string>("just now");
+  const [sseConnected, setSseConnected] = useState<boolean>(false);
+  const sseCleanupRef = useRef<(() => void) | null>(null);
 
 
   const loadData = useCallback(async () => {
@@ -85,12 +95,53 @@ export default function Home() {
     setAlerts((prev) => [...newAlerts, ...prev].slice(0, 50));
   }, []);
 
+  // SSE connection for real-time metrics (1-second cadence)
   useEffect(() => {
+    // Initial one-shot REST load (alerts + system status)
     loadData();
-    // 5-second polling interval (Step 9.11)
-    const interval = setInterval(loadData, 5000);
-    return () => clearInterval(interval);
-  }, [loadData]);
+
+    // Open SSE stream for live metrics
+    const cleanup = createLiveStream(
+      (data: LiveStreamMetrics) => {
+        setSseConnected(true);
+        setLastUpdated(
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })
+        );
+        // Merge SSE metrics into dashboard metrics shape
+        setMetrics((prev) => ({
+          ...prev,
+          flow_rate: Math.round(data.flows_per_sec),
+          flows_analyzed: (prev.flows_analyzed ?? 0) + Math.round(data.flows_per_sec),
+          is_live: data.active,
+        }));
+      },
+      () => {
+        // SSE error — fall back to 5s REST polling
+        setSseConnected(false);
+        if (!sseCleanupRef.current) return;
+        sseCleanupRef.current = null;
+      }
+    );
+    sseCleanupRef.current = cleanup;
+
+    // Fallback 15s REST poll for alerts that SSE doesn't cover
+    const alertPoll = setInterval(() => {
+      fetchRecentAlerts(25).then((res) => {
+        if (res.data && res.data.length > 0) setAlerts(res.data);
+      });
+    }, 15000);
+
+    return () => {
+      cleanup();
+      sseCleanupRef.current = null;
+      clearInterval(alertPoll);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelectSection = (section: NavSection) => {
     setActiveSection(section);
@@ -111,6 +162,7 @@ export default function Home() {
         isLoading={isLoading}
         lastUpdated={lastUpdated}
         onRefresh={loadData}
+        sseConnected={sseConnected}
       />
 
       {/* API Connectivity Banner if Error or Offline */}
@@ -172,6 +224,16 @@ export default function Home() {
           {/* Real Network Telemetry — PCAP Ingest & Analysis */}
           <section id="pcap">
             <PcapUploader onAlertsGenerated={handleSimulationAlerts} />
+          </section>
+
+          {/* Live NIC Sniffer */}
+          <section id="sniffer">
+            <LiveNicSniffer onAlertsGenerated={handleSimulationAlerts} />
+          </section>
+
+          {/* Network Topology Graph */}
+          <section id="topology">
+            <NetworkTopology alerts={alerts} />
           </section>
 
           {/* Attack Simulation Lab */}

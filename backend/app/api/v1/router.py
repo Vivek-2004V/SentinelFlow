@@ -14,6 +14,7 @@ from app.api.v1.endpoints.ingest import router as ingest_router
 from app.api.v1.endpoints.metrics import router as metrics_router
 from app.api.v1.endpoints.pcap import router as pcap_router
 from app.api.v1.endpoints.simulate import router as simulate_router
+from app.api.v1.endpoints.sniffer import router as sniffer_router
 from app.api.v1.endpoints.stream import router as stream_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
@@ -26,4 +27,5 @@ api_v1_router.include_router(chains_router)
 api_v1_router.include_router(simulate_router)
 api_v1_router.include_router(evaluation_router)
 api_v1_router.include_router(pcap_router)
+api_v1_router.include_router(sniffer_router)
 

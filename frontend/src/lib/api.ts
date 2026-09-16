@@ -298,6 +298,143 @@ export interface PcapAnalysisResult {
   disclaimer: string;
 }
 
+// ─── SSE Live Stream ──────────────────────────────────────────────────────────
+
+export interface LiveStreamMetrics {
+  flows_per_sec: number;
+  alerts_per_sec: number;
+  average_latency_ms: number;
+  p95_latency_ms: number;
+  total_flows: number;
+  total_alerts: number;
+  active: boolean;
+}
+
+/**
+ * Opens a Server-Sent Events connection to /api/v1/stream/live.
+ * Returns a cleanup function that closes the EventSource.
+ * Falls back gracefully if EventSource is unavailable.
+ */
+export function createLiveStream(
+  onMessage: (data: LiveStreamMetrics) => void,
+  onError?: (err: Event) => void
+): () => void {
+  if (typeof EventSource === "undefined") {
+    return () => {};
+  }
+
+  const es = new EventSource(`${API_URL}/api/v1/stream/live`);
+
+  es.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data) as LiveStreamMetrics;
+      onMessage(data);
+    } catch {
+      // ignore malformed frames
+    }
+  };
+
+  if (onError) {
+    es.onerror = onError;
+  }
+
+  return () => es.close();
+}
+
+// ─── Live NIC Sniffer ─────────────────────────────────────────────────────────
+
+export interface NicInterface {
+  name: string;
+  description: string;
+  is_up: boolean;
+  addresses?: string[];
+}
+
+
+export interface SnifferStatus {
+  running: boolean;
+  interface: string | null;
+  bpf_filter: string;
+  packets_captured: number;
+  flows_reconstructed: number;
+  alerts_emitted: number;
+  uptime_seconds: number;
+  start_time: string | null;
+  requires_sudo: boolean;
+}
+
+export async function getSnifferInterfaces(): Promise<NicInterface[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/sniffer/interfaces`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.interfaces ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getSnifferStatus(): Promise<SnifferStatus | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/sniffer/status`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function startSniffer(
+  iface: string,
+  bpfFilter: string = "ip or ip6"
+): Promise<{ ok: boolean; message: string }> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/sniffer/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ interface: iface, bpf_filter: bpfFilter }),
+    });
+    const data = await res.json();
+    return { ok: res.ok, message: data.message ?? data.detail ?? "Started" };
+  } catch (err) {
+    return { ok: false, message: String(err) };
+  }
+}
+
+export async function stopSniffer(): Promise<{ ok: boolean; message: string }> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/sniffer/stop`, {
+      method: "POST",
+    });
+    const data = await res.json();
+    return { ok: res.ok, message: data.message ?? "Stopped" };
+  } catch (err) {
+    return { ok: false, message: String(err) };
+  }
+}
+
+export function createSnifferStream(
+  onAlert: (alert: ThreatAlert) => void,
+  onError?: (err: Event) => void
+): () => void {
+  if (typeof EventSource === "undefined") return () => {};
+  const es = new EventSource(`${API_URL}/api/v1/sniffer/stream`);
+  es.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data && data.flow_id) onAlert(data as ThreatAlert);
+    } catch {
+      // ignore
+    }
+  };
+  if (onError) es.onerror = onError;
+  return () => es.close();
+}
+
 export async function analyzePcap(file: File): Promise<PcapAnalysisResult> {
   const formData = new FormData();
   formData.append("file", file);

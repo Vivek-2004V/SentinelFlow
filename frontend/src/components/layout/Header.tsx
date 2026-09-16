@@ -9,6 +9,7 @@ interface HeaderProps {
   apiConnected?: boolean;
   isLoading?: boolean;
   onRefresh?: () => void;
+  sseConnected?: boolean;
 }
 
 export function Header({
@@ -17,6 +18,7 @@ export function Header({
   apiConnected = true,
   isLoading = false,
   onRefresh,
+  sseConnected = false,
 }: HeaderProps) {
   const isOnline = connectionMode === "ONLINE";
 
@@ -76,6 +78,18 @@ export function Header({
           />
           <span className={apiConnected ? "text-slate-300" : "text-rose-400"}>
             {apiConnected ? "API CONNECTED" : "API OFFLINE"}
+          </span>
+        </div>
+
+        {/* SSE Live Stream Indicator */}
+        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-slate-800/80 bg-[#070D1C] px-2.5 py-1 text-[11px] font-mono">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              sseConnected ? "bg-cyan-400 animate-pulse" : "bg-slate-600"
+            }`}
+          />
+          <span className={sseConnected ? "text-cyan-300" : "text-slate-500"}>
+            {sseConnected ? "SSE LIVE" : "SSE OFF"}
           </span>
         </div>
 
