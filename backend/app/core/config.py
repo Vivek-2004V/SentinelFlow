@@ -12,13 +12,14 @@ class Settings(BaseSettings):
     api_version: str = "v1"
 
     allowed_origins: list[str] = [
+        "https://sentinel-frontend-two-virid.vercel.app",
         "https://sentinelflow.vercel.app",
         "https://www.sentinelflow.vercel.app",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
     ]
-    cors_origins: str = "https://sentinelflow.vercel.app,https://www.sentinelflow.vercel.app,http://localhost:3000,http://127.0.0.1:3000"
+    cors_origins: str = "https://sentinel-frontend-two-virid.vercel.app,https://sentinelflow.vercel.app,https://www.sentinelflow.vercel.app,http://localhost:3000,http://127.0.0.1:3000"
     api_key: str = "sentinelflow-soc-dev-key"
     enforce_api_key: bool = False
 
