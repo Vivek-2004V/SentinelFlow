@@ -1,5 +1,6 @@
-Destination Port, Flow Duration, Total Fwd Packets, Total Backward Packets,Total Length of Fwd Packets, Total Length of Bwd Packets, Fwd Packet Length Max, Fwd Packet Length Min, Protocol, Label
-80, 1500, 3, 2, 180, 240, 60, 60, 6, BENIGN
-80, 200, 15000, 0, 900000, 0, 60, 60, 6, DDoS
-443, 2500, 4, 3, 240, 360, 60, 60, 6, BENIGN
-22, 50, 1, 0, 60, 0, 60, 60, 6, PortScan
+Flow ID,Source IP,Destination IP,Source Port,Destination Port,Protocol,Flow Duration,Total Fwd Packets,Total Backward Packets,Total Length of Fwd Packets,Total Length of Bwd Packets,Label
+1,192.168.1.10,10.0.0.5,12345,80,6,500000,10,2,1200,300,BENIGN
+2,192.168.1.20,10.0.0.5,54321,80,6,1500000,50,20,25000,8000,DDoS
+3,192.168.1.30,10.0.0.5,49999,443,6,750000,15,5,2500,900,BENIGN
+4,192.168.1.40,10.0.0.5,33889,80,6,1800000,80,35,55000,22000,PortScan
+5,192.168.1.50,10.0.0.5,22000,22,6,600000,12,1,1800,400,BENIGN
