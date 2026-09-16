@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-09-16T05:51:19.982653Z",
+  "status": "PASS",
+  "gates": {
+    "Dataset Integrity": "PASS",
+    "Feature Validation": "PASS",
+    "Model Loading": "PASS",
+    "Validation Metrics": "PASS",
+    "Unseen Test": "PASS",
+    "LLM Grounding": "PASS",
+    "Security Boundary": "PASS",
+    "Regression Check": "PASS"
+  },
+  "dataset": {
+    "status": "PASS",
+    "train_samples": 525,
+    "validation_samples": 524,
+    "test_samples": 524,
+    "classes": [
+      "ANOMALY",
+      "BENIGN",
+      "C2_BEACON",
+      "DDOS",
+      "DGA",
+      "DNS_TUNNEL",
+      "EXFIL",
+      "RECON"
+    ],
+    "leakage_check": "PASS",
+    "feature_validation": "PASS",
+    "nan_check": "PASS",
+    "errors": []
+  },
+  "models": {
+    "status": "PASS",
+    "model_loading": "PASS",
+    "smoke_test": "PASS",
+    "validation_macro_f1": 0.9983,
+    "test_macro_f1": 0.9967,
+    "generalization_delta": 0.0016,
+    "unseen_test_status": "PASS",
+    "per_class_f1": {
+      "BENIGN": 0.9951,
+      "C2_BEACON": 0.9939,
+      "DDOS": 0.9964,
+      "DGA": 1.0,
+      "DNS_TUNNEL": 1.0,
+      "EXFIL": 0.9916,
+      "RECON": 1.0
+    },
+    "errors": []
+  },
+  "llm": {
+    "status": "PASS",
+    "evidence_grounding": "PASS",
+    "hallucination_check": "PASS",
+    "passive_safety_check": "PASS",
+    "alert_immutability": "PASS",
+    "mitre_alignment": "PASS",
+    "scenarios_evaluated": 3,
+    "errors": []
+  },
+  "regression": {
+    "status": "PASS",
+    "performance": {
+      "status": "PASS",
+      "throughput_fps": 36470,
+      "latency_us": 27.42
+    },
+    "security_boundary": {
+      "passive_architecture": "PASS",
+      "return_path_blocked": "PASS",
+      "mitigation_disabled": "PASS",
+      "action_alert_only": "PASS",
+      "errors": []
+    },
+    "errors": []
+  }
+}
