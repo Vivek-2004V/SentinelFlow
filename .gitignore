@@ -24,15 +24,23 @@ pnpm-debug.log*
 
 # Data
 data/raw/*
-!data/raw/.gitkeep
-!data/raw/public/
-!data/raw/public/**/sample_*
-!data/raw/public/zeek_sample.jsonl
-!data/raw/public/.gitkeep
 data/processed/*
-!data/processed/.gitkeep
 data/splits/*
+
+!data/raw/.gitkeep
+!data/processed/.gitkeep
 !data/splits/.gitkeep
+
+# Small CI fixtures
+!data/raw/public/
+!data/raw/public/cic_ids2017/
+!data/raw/public/cic_ids2017/sample_cic_ids2017.csv
+!data/raw/public/ctu13/
+!data/raw/public/ctu13/sample_ctu13.binetflow
+!data/raw/public/cic_ddos2019/
+!data/raw/public/cic_ddos2019/sample_cic_ddos2019.csv
+!data/raw/public/zeek_sample.jsonl
+
 data/sample/*
 !data/sample/.gitkeep
 !data/sample/demo_flows.csv

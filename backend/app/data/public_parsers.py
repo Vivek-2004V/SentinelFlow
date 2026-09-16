@@ -18,40 +18,71 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-def parse_cic_ids2017_csv(file_path: Path, max_rows: int = 1000, run_id: str = "run_a") -> List[Dict[str, Any]]:
+def normalize_cic_label(value: str | None) -> str:
+    label = (value or "").strip().upper()
+
+    if label == "BENIGN":
+        return "BENIGN"
+
+    if "DDOS" in label or "DOS" in label:
+        return "DDOS"
+
+    if "PORTSCAN" in label or "SCAN" in label:
+        return "RECON"
+
+    if "BOT" in label or "C2" in label:
+        return "C2_BEACON"
+
+    if "INFILTRATION" in label or "EXFIL" in label:
+        return "EXFIL"
+
+    return "ANOMALY"
+
+
+def parse_cic_ids2017_csv(
+    file_path: Path,
+    max_rows: int = 1000,
+    run_id: str = "run_a",
+) -> List[Dict[str, Any]]:
     """
     Parses a CIC-IDS2017 or CIC-DDoS2019 CSV export file into SentinelFlow raw flow records.
     Maps Canadian Institute for Cybersecurity column headers.
     """
-    records: List[Dict[str, Any]] = []
-    if not file_path.exists():
-        return records
+    if not file_path.is_file():
+        raise FileNotFoundError(f"CIC-IDS2017 fixture not found: {file_path}")
 
-    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+    records: List[Dict[str, Any]] = []
+
+    with open(
+        file_path,
+        "r",
+        encoding="utf-8-sig",
+        newline="",
+        errors="ignore",
+    ) as f:
         reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError(f"CIC-IDS2017 fixture has no header: {file_path}")
+
         for i, row in enumerate(reader):
             if i >= max_rows:
                 break
 
-            clean_row = {k.strip(): v.strip() for k, v in row.items() if k}
+            clean_row = {
+                k.strip(): (v.strip() if v else "")
+                for k, v in row.items()
+                if k
+            }
+            if not any(clean_row.values()):
+                continue
 
-            raw_label = clean_row.get("Label", "BENIGN").upper()
-            is_attack = raw_label != "BENIGN"
-            threat_class = "BENIGN"
-            if "DDOS" in raw_label or "DOS" in raw_label:
-                threat_class = "DDOS"
-            elif "PORTSCAN" in raw_label or "SCAN" in raw_label:
-                threat_class = "RECON"
-            elif "BOT" in raw_label or "C2" in raw_label:
-                threat_class = "C2_BEACON"
-            elif "INFILTRATION" in raw_label or "EXFIL" in raw_label:
-                threat_class = "EXFIL"
-            elif is_attack:
-                threat_class = "ANOMALY"
+            threat_class = normalize_cic_label(clean_row.get("Label"))
+            is_attack = threat_class != "BENIGN"
 
             try:
                 duration_us = float(clean_row.get("Flow Duration", 1000))
                 duration_sec = max(0.001, duration_us / 1_000_000.0)
+
                 tot_fwd_pkts = int(float(clean_row.get("Total Fwd Packets", 1)))
                 tot_bwd_pkts = int(float(clean_row.get("Total Backward Packets", 0)))
                 tot_fwd_bytes = int(float(clean_row.get("Total Length of Fwd Packets", 60)))
@@ -77,27 +108,51 @@ def parse_cic_ids2017_csv(file_path: Path, max_rows: int = 1000, run_id: str = "
             except (ValueError, TypeError):
                 continue
 
+    if not records:
+        raise ValueError(f"CIC-IDS2017 fixture produced no records: {file_path}")
+
     return records
 
 
-def parse_ctu13_binetflow(file_path: Path, max_rows: int = 1000, run_id: str = "run_a") -> List[Dict[str, Any]]:
+def parse_ctu13_binetflow(
+    file_path: Path,
+    max_rows: int = 1000,
+    run_id: str = "run_a",
+) -> List[Dict[str, Any]]:
     """
     Parses a CTU-13 binetflow capture file.
     Headers: StartTime, Dur, Proto, SrcAddr, Sport, Dir, DstAddr, Dport, State, sTos, dTos, TotPkts, TotBytes, SrcBytes, Label
     """
-    records: List[Dict[str, Any]] = []
-    if not file_path.exists():
-        return records
+    if not file_path.is_file():
+        raise FileNotFoundError(f"CTU-13 fixture not found: {file_path}")
 
-    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+    records: List[Dict[str, Any]] = []
+
+    with open(
+        file_path,
+        "r",
+        encoding="utf-8-sig",
+        newline="",
+        errors="ignore",
+    ) as f:
         reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError(f"CTU-13 fixture has no header: {file_path}")
+
         for i, row in enumerate(reader):
             if i >= max_rows:
                 break
 
-            clean_row = {k.strip(): v.strip() for k, v in row.items() if k}
+            clean_row = {
+                k.strip(): (v.strip() if v else "")
+                for k, v in row.items()
+                if k
+            }
+            if not any(clean_row.values()):
+                continue
+
             raw_label = clean_row.get("Label", "Normal").upper()
-            is_botnet = "BOTNET" in raw_label
+            is_botnet = "BOTNET" in raw_label or "CC" in raw_label or "BOT" in raw_label
 
             try:
                 dur = float(clean_row.get("Dur", 0.1))
@@ -129,6 +184,9 @@ def parse_ctu13_binetflow(file_path: Path, max_rows: int = 1000, run_id: str = "
                 })
             except (ValueError, TypeError):
                 continue
+
+    if not records:
+        raise ValueError(f"CTU-13 fixture produced no records: {file_path}")
 
     return records
 

@@ -31,6 +31,13 @@ jobs:
           pip install -r requirements.txt
           pip install pytest ruff bandit
 
+      - name: Validate public dataset fixtures
+        run: |
+          test -s ../data/raw/public/cic_ids2017/sample_cic_ids2017.csv
+          test -s ../data/raw/public/ctu13/sample_ctu13.binetflow
+          head -n 3 ../data/raw/public/cic_ids2017/sample_cic_ids2017.csv
+          head -n 3 ../data/raw/public/ctu13/sample_ctu13.binetflow
+
       - name: Train Deterministic Models
         run: |
           python -m app.ml.train --dataset ../data/sample/ci_smoke.csv --output-dir ../models
