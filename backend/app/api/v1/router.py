@@ -11,6 +11,7 @@ from app.api.v1.endpoints.alerts import router as alerts_router
 from app.api.v1.endpoints.chains import router as chains_router
 from app.api.v1.endpoints.ingest import router as ingest_router
 from app.api.v1.endpoints.metrics import router as metrics_router
+from app.api.v1.endpoints.simulate import router as simulate_router
 from app.api.v1.endpoints.stream import router as stream_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
@@ -20,3 +21,4 @@ api_v1_router.include_router(alerts_router)
 api_v1_router.include_router(stream_router)
 api_v1_router.include_router(metrics_router)
 api_v1_router.include_router(chains_router)
+api_v1_router.include_router(simulate_router)

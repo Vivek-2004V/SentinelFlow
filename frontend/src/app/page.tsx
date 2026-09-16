@@ -14,6 +14,7 @@ import { SecurityBoundary } from "@/components/dashboard/SecurityBoundary";
 import { SensorStatus } from "@/components/dashboard/SensorStatus";
 import { MLIntelligence } from "@/components/dashboard/MLIntelligence";
 import { AdaptiveBaseline } from "@/components/dashboard/AdaptiveBaseline";
+import { AttackSimulationLab } from "@/components/dashboard/AttackSimulationLab";
 import {
   ConnectionMode,
   DashboardMetrics,
@@ -38,6 +39,7 @@ export default function Home() {
   const [alerts, setAlerts] = useState<ThreatAlert[]>(DEMO_ALERTS);
   const [metrics, setMetrics] = useState<DashboardMetrics>(DEMO_METRICS);
   const [lastUpdated, setLastUpdated] = useState<string>("just now");
+
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -74,6 +76,11 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  // Immediately prepend simulation alerts to the feed without waiting for the 5s polling cycle
+  const handleSimulationAlerts = useCallback((newAlerts: ThreatAlert[]) => {
+    setAlerts((prev) => [...newAlerts, ...prev].slice(0, 50));
   }, []);
 
   useEffect(() => {
@@ -154,6 +161,11 @@ export default function Home() {
 
           {/* Hero Data-Flow Visual (Unidirectional Invariant) */}
           <HeroDataFlow />
+
+          {/* Attack Simulation Lab */}
+          <section id="simulation">
+            <AttackSimulationLab onAlertsGenerated={handleSimulationAlerts} />
+          </section>
 
           {/* KPI Summary Cards */}
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

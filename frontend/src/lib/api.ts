@@ -137,3 +137,57 @@ export async function analyzeLiveFlow(flowData: Record<string, unknown>): Promis
     return null;
   }
 }
+
+// ─── Attack Simulation Lab ────────────────────────────────────────────────────
+
+export type AttackType = "DDOS" | "C2_BEACON" | "DGA" | "DNS_TUNNEL" | "RECON" | "EXFIL";
+
+export interface AIAnalysis {
+  rule_score: number;
+  ml_score: number;
+  anomaly_score: number;
+  baseline_deviation: number;
+  threat_fusion_confidence: number;
+  primary_threat: string;
+  detector_signals: string[];
+}
+
+export interface SimulateResult {
+  attack_type: string;
+  mode: string;
+  flows_sent: number;
+  alerts_generated: number;
+  alerts: ThreatAlert[];
+  ai_analysis: AIAnalysis | null;
+  simulated: boolean;
+  disclaimer: string;
+}
+
+export async function runSimulation(
+  attackType: AttackType,
+  srcIp: string = "10.0.0.77"
+): Promise<SimulateResult> {
+  const res = await fetch(`${API_URL}/api/v1/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attack_type: attackType, mode: "single", src_ip: srcIp }),
+  });
+  if (!res.ok) {
+    throw new Error(`Simulation failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function runAttackChain(
+  srcIp: string = "10.0.0.77"
+): Promise<SimulateResult> {
+  const res = await fetch(`${API_URL}/api/v1/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attack_type: "RECON", mode: "chain", src_ip: srcIp }),
+  });
+  if (!res.ok) {
+    throw new Error(`Chain simulation failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
