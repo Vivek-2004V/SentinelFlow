@@ -88,7 +88,7 @@ export function AdaptiveBaseline({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-950/40 px-2.5 py-0.5 text-[11px] font-mono font-medium text-cyan-300">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
-            <span>● {status}</span>
+            <span>{status}</span>
           </div>
         </div>
       </div>

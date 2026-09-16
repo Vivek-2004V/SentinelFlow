@@ -57,7 +57,7 @@ export function Header({
           />
           <div className="flex items-center gap-1.5 font-mono text-[11px] font-medium tracking-wider">
             <span className={isOnline ? "text-emerald-300" : "text-amber-300"}>
-              {isOnline ? "● LIVE TAP INGRESS" : "● REPLAY MODE"}
+              {isOnline ? "LIVE TAP INGRESS" : "REPLAY MODE"}
             </span>
             {!isOnline && (
               <span className="hidden sm:inline text-slate-500 font-mono text-[10px]">

@@ -1,19 +1,24 @@
 "use client";
 
 import React from "react";
+import { TreePine, Waypoints, TrendingUp, Layers, Info } from "lucide-react";
 
 export function MLIntelligence() {
   const models = [
     {
+      icon: <TreePine className="h-4 w-4" />,
+      iconColor: "text-emerald-400 bg-emerald-950/40 border-emerald-500/30",
       name: "RANDOM FOREST",
       type: "Supervised Classification",
       purpose: "Known Threat Detection",
       badge: "Supervised Model",
       description: "Trained on multi-class network attack vectors from normalized telemetry.",
-      metrics: "F1 Score: 0.997 | Validation Set: 1,048 flows | Unseen Test: 524 flows",
+      metrics: "F1 Score: 0.997 | Validation: 1,048 flows | Unseen Test: 524 flows",
       decisionRole: "Primary signature-guided multi-vector classifier",
     },
     {
+      icon: <Waypoints className="h-4 w-4" />,
+      iconColor: "text-purple-400 bg-purple-950/40 border-purple-500/30",
       name: "ISOLATION FOREST",
       type: "Unsupervised Detection",
       purpose: "Unseen Anomaly Detection",
@@ -25,10 +30,10 @@ export function MLIntelligence() {
   ];
 
   const fusionLayers = [
-    { name: "Detector Signals", type: "Entropy, Rate Bounds, Periodicity" },
-    { name: "Random Forest", type: "Supervised Threat Classification" },
-    { name: "Isolation Forest", type: "Unsupervised Anomaly Isolation" },
-    { name: "Adaptive Baseline", type: "Rolling EWMA Host Profiles" },
+    { icon: <TrendingUp className="h-3.5 w-3.5" />, name: "Detector Signals",  type: "Entropy, Rate Bounds, Periodicity",    color: "text-slate-300" },
+    { icon: <TreePine    className="h-3.5 w-3.5" />, name: "Random Forest",     type: "Supervised Threat Classification",       color: "text-emerald-400" },
+    { icon: <Waypoints   className="h-3.5 w-3.5" />, name: "Isolation Forest",  type: "Unsupervised Anomaly Isolation",         color: "text-purple-400" },
+    { icon: <TrendingUp  className="h-3.5 w-3.5" />, name: "Adaptive Baseline", type: "Rolling EWMA Host Profiles",             color: "text-cyan-400" },
   ];
 
   return (
@@ -37,19 +42,19 @@ export function MLIntelligence() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold tracking-tight text-white flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-cyan-400"></span>
+            <Layers className="h-4 w-4 text-cyan-400" />
             AI / ML Intelligence
           </h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            Exactly 2 Active Machine Learning Models + Deterministic Threat Fusion
+            2 Active Machine Learning Models + Deterministic Threat Fusion
           </p>
         </div>
-        <span className="rounded bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-400 border border-cyan-500/20">
+        <span className="rounded border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-400">
           2 Models Active
         </span>
       </div>
 
-      {/* The 2 ML Models (Step 9.9) */}
+      {/* The 2 ML Models */}
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {models.map((m) => (
           <div
@@ -58,10 +63,18 @@ export function MLIntelligence() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-300">
-                  {m.badge}
+                <div className="flex items-center gap-2">
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-lg border ${m.iconColor}`}>
+                    {m.icon}
+                  </div>
+                  <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-300">
+                    {m.badge}
+                  </span>
+                </div>
+                <span className="flex items-center gap-1 font-mono text-[10px] text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Active
                 </span>
-                <span className="font-mono text-[10px] text-emerald-400">● Active</span>
               </div>
               <h3 className="mt-2.5 font-mono text-sm font-bold text-white tracking-wide">
                 {m.name}
@@ -82,7 +95,7 @@ export function MLIntelligence() {
         ))}
       </div>
 
-      {/* FINAL INTELLIGENCE Threat Fusion Diagram */}
+      {/* Fusion Architecture Diagram */}
       <div className="mt-4 rounded-xl border border-slate-800 bg-[#070D1C] p-4">
         <div className="flex items-center justify-between mb-3">
           <span className="font-mono text-xs font-semibold text-slate-300 uppercase tracking-wider">
@@ -91,54 +104,45 @@ export function MLIntelligence() {
           <span className="font-mono text-[10px] text-slate-400">Multi-Signal Triad</span>
         </div>
 
-        {/* Fusion Nodes Flow */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
           {fusionLayers.map((layer, idx) => (
             <div
               key={layer.name}
-              className="rounded-lg border border-slate-800/80 bg-[#0A1329] p-2.5 flex flex-col justify-center items-center"
+              className="rounded-lg border border-slate-800/80 bg-[#0A1329] p-2.5 flex flex-col items-center gap-1.5"
             >
-              <span className="text-[9px] font-mono text-slate-500 mb-1">Signal {idx + 1}</span>
-              <p className="font-mono text-xs font-bold text-white">{layer.name}</p>
-              <p className="text-[9px] text-slate-400 mt-0.5">{layer.type}</p>
+              <span className={`text-[9px] font-mono text-slate-500`}>Signal {idx + 1}</span>
+              <div className={layer.color}>{layer.icon}</div>
+              <p className="font-mono text-xs font-bold text-white leading-tight">{layer.name}</p>
+              <p className="text-[9px] text-slate-400 leading-tight">{layer.type}</p>
             </div>
           ))}
         </div>
 
         {/* Threat Fusion Aggregator */}
         <div className="mt-3 flex flex-col items-center">
-          <div className="text-cyan-400 font-mono text-xs mb-1">↓</div>
+          <div className="text-cyan-400 text-xs mb-1">↓</div>
           <div className="w-full rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-950/50 via-[#0A1329] to-cyan-950/50 p-2.5 text-center shadow-inner">
-            <span className="font-mono text-xs font-bold text-cyan-300 tracking-wider">
-              THREAT FUSION ENGINE
-            </span>
+            <div className="flex items-center justify-center gap-2">
+              <Layers className="h-3.5 w-3.5 text-cyan-400" />
+              <span className="font-mono text-xs font-bold text-cyan-300 tracking-wider">
+                THREAT FUSION ENGINE
+              </span>
+            </div>
             <p className="text-[10px] text-slate-400 mt-0.5">
-              Weighted cross-validation • Correlated Kill-Chain Scoring • Explainable Evidence
+              Weighted cross-validation · Correlated Kill-Chain Scoring · Explainable Evidence
             </p>
           </div>
         </div>
       </div>
 
-      {/* LLM Boundary Constraint Notice */}
+      {/* Security Decision-Making Note */}
       <div className="mt-4 rounded-lg border border-slate-800 bg-[#050914] p-3 text-xs text-slate-400 flex items-start gap-2.5">
-        <svg
-          className="h-4 w-4 shrink-0 text-cyan-400 mt-0.5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-          />
-        </svg>
+        <Info className="h-4 w-4 shrink-0 text-cyan-400 mt-0.5" />
         <p className="leading-relaxed">
-          <strong className="text-slate-200">Security Decision-Making Invariant:</strong> LLMs are{" "}
-          <strong className="text-amber-300">never</strong> used for primary threat detection or
-          verdicts. Any present or future LLM integration serves strictly as a read-only natural
-          language explanation layer.
+          <strong className="text-slate-200">Security Decision-Making Invariant:</strong>{" "}
+          LLMs are <strong className="text-amber-300">never</strong> used for primary threat
+          detection or verdicts. Any present or future LLM integration serves strictly as a
+          read-only natural language explanation layer.
         </p>
       </div>
     </div>

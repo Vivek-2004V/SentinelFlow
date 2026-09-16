@@ -38,7 +38,17 @@ export function SensorStatus({ status, mode }: SensorStatusProps) {
               : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
           }`}
         >
-          {isOnline ? "● SENSOR ONLINE" : "○ DEMO REPLAY"}
+          {isOnline ? (
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              SENSOR ONLINE
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+              DEMO REPLAY
+            </span>
+          )}
         </span>
       </div>
 

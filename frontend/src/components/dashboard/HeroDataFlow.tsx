@@ -1,14 +1,41 @@
 "use client";
 
 import React from "react";
+import {
+  Globe,
+  ArrowRightLeft,
+  ShieldCheck,
+  GitMerge,
+  BellRing,
+} from "lucide-react";
 
 export function HeroDataFlow() {
   const stages = [
-    { label: "Production Network", sub: "Live NetFlow / Zeek Telemetry", icon: "🌐" },
-    { label: "One-Way Passive TAP", sub: "Physical Diode / SPAN (Rx Only)", icon: "⚡" },
-    { label: "SentinelFlow Core", sub: "Feature Extraction & Dual AI Models", icon: "🛡️" },
-    { label: "Explainable Attribution", sub: "Multi-Stage Attack Chain Fusion", icon: "🔬" },
-    { label: "SOC Actionable Alert", sub: "Strict ALERT_ONLY Output", icon: "🚨" },
+    {
+      label: "Production Network",
+      sub: "Live NetFlow / Zeek Telemetry",
+      icon: <Globe className="h-3.5 w-3.5 text-slate-300" />,
+    },
+    {
+      label: "One-Way Passive TAP",
+      sub: "Physical Diode / SPAN (Rx Only)",
+      icon: <ArrowRightLeft className="h-3.5 w-3.5 text-cyan-400" />,
+    },
+    {
+      label: "SentinelFlow Core",
+      sub: "Feature Extraction & Dual AI Models",
+      icon: <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />,
+    },
+    {
+      label: "Explainable Attribution",
+      sub: "Multi-Stage Attack Chain Fusion",
+      icon: <GitMerge className="h-3.5 w-3.5 text-purple-400" />,
+    },
+    {
+      label: "SOC Actionable Alert",
+      sub: "Strict ALERT_ONLY Output",
+      icon: <BellRing className="h-3.5 w-3.5 text-amber-400" />,
+    },
   ];
 
   return (
@@ -31,7 +58,10 @@ export function HeroDataFlow() {
               </span>
             </div>
             <p className="text-xs text-slate-300">
-              Observe <span className="text-cyan-400 font-semibold">→</span> Correlate <span className="text-cyan-400 font-semibold">→</span> Explain <span className="text-cyan-400 font-semibold">→</span> Alert. <span className="text-amber-300 font-semibold">Never Respond.</span>
+              Observe <span className="text-cyan-400 font-semibold">→</span> Correlate{" "}
+              <span className="text-cyan-400 font-semibold">→</span> Explain{" "}
+              <span className="text-cyan-400 font-semibold">→</span> Alert.{" "}
+              <span className="text-amber-300 font-semibold">Never Respond.</span>
             </p>
           </div>
         </div>
@@ -41,10 +71,12 @@ export function HeroDataFlow() {
           {stages.map((st, idx) => (
             <React.Fragment key={st.label}>
               <div className="group relative flex items-center gap-2 rounded-lg border border-slate-800 bg-[#070D1A] px-2.5 py-1.5 transition-colors hover:border-cyan-500/30">
-                <span className="text-xs">{st.icon}</span>
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                  {st.icon}
+                </div>
                 <div>
                   <p className="font-mono text-[11px] font-medium text-slate-200">{st.label}</p>
-                  <p className="text-[9px] text-slate-300">{st.sub}</p>
+                  <p className="text-[9px] text-slate-400">{st.sub}</p>
                 </div>
               </div>
 

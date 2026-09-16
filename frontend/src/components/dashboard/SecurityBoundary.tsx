@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Check, X, Lock } from "lucide-react";
 
 export function SecurityBoundary() {
   const capabilities = [
@@ -28,9 +29,7 @@ export function SecurityBoundary() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-950/40 text-cyan-400 shadow-[0_0_15px_-3px_rgba(56,189,248,0.3)]">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-          </svg>
+          <Lock className="h-4 w-4" />
         </div>
         <div>
           <div className="flex items-center gap-2">
@@ -42,7 +41,7 @@ export function SecurityBoundary() {
             </span>
           </div>
           <p className="mt-0.5 text-xs text-slate-400">
-            Guaranteed physical & logical isolation with read-only monitoring architecture
+            Guaranteed physical &amp; logical isolation with read-only monitoring architecture
           </p>
         </div>
       </div>
@@ -52,8 +51,8 @@ export function SecurityBoundary() {
         {/* Positive Capabilities */}
         <div className="rounded-xl border border-emerald-500/20 bg-[#061215]/80 p-4">
           <div className="flex items-center gap-2 border-b border-emerald-500/20 pb-2">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
-              ✓
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+              <Check className="h-2.5 w-2.5 stroke-[3]" />
             </span>
             <span className="font-mono text-xs font-bold text-emerald-300 uppercase tracking-wider">
               Enforced Capabilities
@@ -62,7 +61,7 @@ export function SecurityBoundary() {
           <ul className="mt-2.5 space-y-1.5 text-xs text-slate-300">
             {capabilities.map((cap) => (
               <li key={cap} className="flex items-center gap-2">
-                <span className="text-emerald-400 font-bold text-[11px]">✓</span>
+                <Check className="h-3 w-3 shrink-0 text-emerald-400 stroke-[2.5]" />
                 <span>{cap}</span>
               </li>
             ))}
@@ -72,8 +71,8 @@ export function SecurityBoundary() {
         {/* Explicit Architectural Restrictions */}
         <div className="rounded-xl border border-rose-500/20 bg-[#160A10]/80 p-4">
           <div className="flex items-center gap-2 border-b border-rose-500/20 pb-2">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-bold">
-              ✕
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500/20 text-rose-400">
+              <X className="h-2.5 w-2.5 stroke-[3]" />
             </span>
             <span className="font-mono text-xs font-bold text-rose-300 uppercase tracking-wider">
               Strict Non-Interference Restrictions
@@ -82,7 +81,7 @@ export function SecurityBoundary() {
           <ul className="mt-2.5 space-y-1.5 text-xs text-slate-300">
             {restrictions.map((res) => (
               <li key={res} className="flex items-center gap-2">
-                <span className="text-rose-400 font-bold text-[11px]">✕</span>
+                <X className="h-3 w-3 shrink-0 text-rose-400 stroke-[2.5]" />
                 <span>{res}</span>
               </li>
             ))}
