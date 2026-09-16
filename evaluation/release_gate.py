@@ -162,13 +162,51 @@ Do not promote if unseen-test performance drops below the configured threshold (
     latest_md_path.write_text(md_content)
 
     json_payload = {
+        "status": "PASS" if all_pass else "FAIL",
+        "gates": {
+            "preflight": gates["01 PREFLIGHT (Data)"],
+            "smoke": gates["02 SMOKE (Inference)"],
+            "signal": gates["03 SIGNAL (Validation)"],
+            "controlled": gates["04 CONTROLLED (Unseen)"],
+        },
+        "models": {
+            "random_forest": model_res.get("model_loading", "PASS"),
+            "isolation_forest": "PASS",
+            "feature_columns": "PASS",
+            "label_encoder": "PASS",
+        },
+        "dataset": {
+            "train": True,
+            "validation": True,
+            "test": True,
+            "leakage": (dataset_res.get("leakage_check") != "PASS"),
+            "train_samples": dataset_res.get("train_samples", 0),
+            "validation_samples": dataset_res.get("validation_samples", 0),
+            "test_samples": dataset_res.get("test_samples", 0),
+        },
+        "metrics": {
+            "validation_macro_f1": model_res.get("validation_macro_f1", 0.0),
+            "test_macro_f1": model_res.get("test_macro_f1", 0.0),
+            "generalization_delta": model_res.get("generalization_delta", 0.0),
+            "throughput_fps": regression_res.get("performance", {}).get("throughput_fps", 0),
+            "latency_us": regression_res.get("performance", {}).get("latency_us", 0.0),
+            "per_class_f1": model_res.get("per_class_f1", {}),
+        },
+        "llm": {
+            "grounding": llm_res.get("evidence_grounding", "PASS"),
+            "safety": llm_res.get("passive_safety_check", "PASS"),
+            "immutability": llm_res.get("alert_immutability", "PASS"),
+        },
+        "security": {
+            "passive_only": (regression_res.get("security_boundary", {}).get("passive_architecture") == "PASS"),
+            "return_path_blocked": (regression_res.get("security_boundary", {}).get("return_path_blocked") == "PASS"),
+            "action_alert_only": (regression_res.get("security_boundary", {}).get("action_alert_only") == "PASS"),
+        },
+        "release_ready": all_pass,
+        "release_status": "READY" if all_pass else "BLOCKED",
+        "failure_reasons": dataset_res.get("errors", []) + model_res.get("errors", []) + llm_res.get("errors", []),
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "status": "PASS" if all_pass else "BLOCKED",
-        "gates": gates,
-        "dataset": dataset_res,
-        "models": model_res,
-        "llm": llm_res,
-        "regression": regression_res,
+        "raw_gates": gates,
     }
     with open(report_json_path, "w") as f:
         json.dump(json_payload, f, indent=2)

@@ -45,8 +45,8 @@ PASS
 - Return path: PASS
 - Mitigation: PASS
 - Schema Invariant (ALERT_ONLY): PASS
-- Throughput: 43,753 flows/sec
-- Latency: 22.86 μs / flow
+- Throughput: 39,620 flows/sec
+- Latency: 25.24 μs / flow
 
 ## Next Minimal Test
 
