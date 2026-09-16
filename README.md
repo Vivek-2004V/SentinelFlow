@@ -1,711 +1,504 @@
-# SentinelFlow
+# SentinelFlow 🛡️
 
-> **Passive AI Threat Intelligence for One-Way Networks & Critical Infrastructure**
+> **Passive AI Threat Intelligence for One-Way Networks & Critical Infrastructure**  
 > *Observe. Correlate. Explain. Never Respond.*
 
-[![CI/CD Pipeline](https://github.com/Vivek-2004V/SentinelFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/Vivek-2004V/SentinelFlow/actions)
-[![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
-[![Next.js](https://img.shields.io/badge/Next.js-16+-black.svg)](https://nextjs.org/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+[![CI/CD Security Checks](https://github.com/Vivek-2004V/SentinelFlow/actions/workflows/backend.yml/badge.svg)](https://github.com/Vivek-2004V/SentinelFlow/actions)
+[![Python Version](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3%20(Turbopack)-black.svg?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Security Invariant](https://img.shields.io/badge/Return%20Path-DISABLED%20(Air--Gapped)-red.svg)](#-critical-security-boundaries--invariants)
 [![Code Quality](https://img.shields.io/badge/Ruff-0%20errors-brightgreen.svg)](https://github.com/astral-sh/ruff)
 [![Security SAST](https://img.shields.io/badge/Bandit-0%20issues-brightgreen.svg)](https://github.com/PyCQA/bandit)
+[![Tests](https://img.shields.io/badge/Pytest-89%2F89%20passed-success.svg)](backend/tests/)
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 
 1. [Project Overview](#-project-overview)
 2. [Key Features](#-key-features)
-3. [Attack Simulation Lab](#-attack-simulation-lab)
-4. [System Architecture](#️-system-architecture)
-5. [Technologies Used](#️-technologies-used)
-6. [AI Tools & Machine Learning Models](#-ai-tools--machine-learning-models)
-7. [Setup & Installation](#️-setup--installation)
-8. [Usage & Quick Start](#-usage--quick-start)
-9. [Project Structure](#-project-structure)
-10. [Critical Security Boundaries & Invariants](#-critical-security-boundaries--invariants)
-11. [Dataset Provenance & Zero-Leakage Validation](#-dataset-provenance--zero-leakage-validation)
-12. [Testing, Security Hardening & CI/CD](#-testing-security-hardening--cicd)
-13. [License](#-license)
+3. [Technologies Used](#️-technologies-used)
+4. [AI Tools, Models & Detection Architecture](#-ai-tools-models--detection-architecture)
+5. [Setup & Installation Instructions](#️-setup--installation-instructions)
+6. [Usage & Operational Workflows](#-usage--operational-workflows)
+7. [Project Structure](#-project-structure)
+8. [Critical Security Boundaries & Defense-in-Depth](#-critical-security-boundaries--defense-in-depth)
+9. [Dataset Provenance & Zero-Leakage Validation](#-dataset-provenance--zero-leakage-validation)
+10. [Automated Security Auditing & CI/CD](#-automated-security-auditing--cicd)
+11. [License](#-license)
 
 ---
 
-## Project Overview
+## 🌐 Project Overview
 
-Critical infrastructure — power grids, nuclear facilities, industrial plants, and defense networks — often operates behind **physical data diodes** and optical network taps where data can only travel in one direction. Traditional IDPS tools are not built for these environments: they probe devices, send TCP resets, or require decrypting TLS traffic, all of which break unidirectional isolation.
+Critical infrastructure — power grids, nuclear generating facilities, industrial SCADA networks, financial core processors, and defense installations — operates behind **physical data diodes** and optical network taps. In these high-assurance environments, data can travel in only one direction.
 
-**SentinelFlow** is an open-source, fully passive cybersecurity monitoring platform that operates entirely within a one-way read-only boundary:
+Traditional Intrusion Detection and Prevention Systems (IDPS) are structurally incompatible with unidirectional environments:
+- They actively probe connected devices and scan open ports.
+- They generate TCP resets or ICMP teardowns back onto the wire.
+- They attempt inline packet interception or man-in-the-middle TLS decryption.
 
-- **100% Passive & Read-Only** — Analyzes network metadata (packet sizes, flow timing, DNS queries, entropy) without sending a single packet back into the network.
-- **Zero Payload Decryption** — Detects threats purely from statistical patterns and behavioral flow metadata. No TLS inspection required.
-- **Hybrid Threat Intelligence** — Combines deterministic rules, two purpose-built ML models (Random Forest & Isolation Forest), and adaptive per-host baselines to detect and explain complex multi-stage attacks.
+Any attempt to transmit data back across an air-gapped diode triggers electrical failure or breaks hardware isolation.
+
+**SentinelFlow** is an open-source, production-ready passive network threat intelligence and SOC monitoring platform engineered strictly within a **read-only, one-way architecture**:
+
+- **100% Passive & Unidirectional**: Ingests raw frames and packet telemetry without emitting a single byte back onto the monitored network segment.
+- **Zero Payload Decryption**: Detects and classifies threats entirely from 5-tuple flow dynamics, packet timing variance, DNS metadata, and Shannon entropy.
+- **Hybrid Threat Intelligence Triad**: Unifies deterministic rules, supervised Random Forest classification, unsupervised Isolation Forest outlier detection, and dynamic per-host EWMA baselines.
+- **Live SOC Command Experience**: Modern glassmorphic Next.js interface with real-time Server-Sent Events (SSE), force-directed network topology mapping, in-browser packet capture control, and forensic export.
 
 ```text
-    PASSIVE NETWORK TAP / DATA DIODE (RX Only)
-                         |
-                         v
-        +----------------------------------+
-        |     24-FEATURE FEATURE ENGINE    |
-        |  (Volume, Timing, DNS, Entropy)  |
-        +----------------+-----------------+
-                         |
-                         v
-        +----------------------------------+
-        |      HYBRID DETECTION TRIAD      |
-        |  - Deterministic Signatures      |
-        |  - Random Forest (Supervised)    |
-        |  - Isolation Forest (Anomaly)    |
-        |  - Adaptive Rolling Baseline     |
-        +----------------+-----------------+
-                         |
-                         v
-        +----------------------------------+
-        |       THREAT FUSION ENGINE       |
-        |  (Multi-Signal Attack Chains)    |
-        +----------------+-----------------+
-                         |
-                         v
-        +----------------------------------+
-        |      NEXT.JS SOC COMMAND UI      |
-        |  (Explainable Evidence Drawer)   |
-        +----------------------------------+
+    MONITORED PHYSICAL NETWORK (Air-Gapped / TAP / Data Diode)
+                               │ (Read-Only Optical RX)
+                               ▼
+        ┌─────────────────────────────────────────────┐
+        │       INGESTION & CAPTURE LAYER             │
+        │  • Live NIC Sniffer (Promiscuous RX)        │
+        │  • Forensic PCAP / PCAPNG Ingestion         │
+        │  • Zeek / NetFlow Log Streamers             │
+        └──────────────────────┬──────────────────────┘
+                               │
+                               ▼
+        ┌─────────────────────────────────────────────┐
+        │       24-FEATURE TELEMETRY ENGINE           │
+        │  • Flow Volume & Asymmetry (Bytes/Packets)  │
+        │  • Inter-Arrival Time & Autocorrelation     │
+        │  • DNS QName Shannon Entropy                │
+        │  • TLS ClientHello SNI Metadata             │
+        └──────────────────────┬──────────────────────┘
+                               │
+                               ▼
+        ┌─────────────────────────────────────────────┐
+        │       HYBRID DETECTION & ML ENGINE          │
+        │  ┌────────────────────┬───────────────────┐ │
+        │  │  Deterministic     │   Random Forest   │ │
+        │  │  Signatures & Rules│   (Supervised ML) │ │
+        │  ├────────────────────┼───────────────────┤ │
+        │  │  Isolation Forest  │  Adaptive EWMA    │ │
+        │  │  (Zero-Day Outlier)│  Host Baselines   │ │
+        │  └────────────────────┴───────────────────┘ │
+        └──────────────────────┬──────────────────────┘
+                               │
+                               ▼
+        ┌─────────────────────────────────────────────┐
+        │       THREAT FUSION & CORRELATION           │
+        │  • Multi-Signal Temporal Sliding Window     │
+        │  • MITRE ATT&CK Kill-Chain Assembler        │
+        │  • Deterministic Confidence Arbiter         │
+        └──────────────────────┬──────────────────────┘
+                               │
+                               ▼
+        ┌─────────────────────────────────────────────┐
+        │       SOC COMMAND CENTER & API              │
+        │  • SSE Real-Time Alert Stream (/stream/live)│
+        │  • Interactive Network Topology Graph       │
+        │  • AI Forensic Advisory (Read-Only LLM)     │
+        │  • One-Click PCAP Forensic Bundle Export    │
+        └─────────────────────────────────────────────┘
 ```
 
 ---
 
-## Key Features
+## ⚡ Key Features
 
-- **Zero-Touch Passive Ingestion** — Listens strictly to passive telemetry feeds (PCAP, Zeek JSON logs, NetFlow, or Replay). Zero return-path sockets.
-- **High-Speed Real-Time Processing** — Analyzes over 300 flows/second with sub-5ms latency (P50 < 3.3ms, P99 < 5.0ms).
-- **Standardized 24-Feature Schema** — Normalizes raw network data into 24 canonical features across flow volume, timing, DNS metadata, and host behavior.
-- **7 Core Threat Detection Vectors**:
-  1. **DDoS Floods** — Volumetric spikes, abnormal packet rates, asymmetric traffic.
-  2. **C2 Beaconing** — Regular periodic intervals via auto-correlation (>= 0.90) and low timing variance.
-  3. **Domain Generation Algorithms (DGA)** — High Shannon entropy (>= 3.8) and randomized domain patterns.
-  4. **DNS Tunneling** — Abnormally long queries, high entropy, encoded exfiltration via DNS.
-  5. **Network Reconnaissance** — Vertical port scans and horizontal host sweep detection.
-  6. **Data Exfiltration** — High outbound-to-inbound byte ratios (>= 5.0) and sustained data transfers.
-  7. **TLS Behavioral Anomalies** — Unusual encrypted session timing patterns without decrypting traffic.
-- **Adaptive Rolling Baseline** — Continuously learns per-host normal behavior using online EWMA statistical tracking (Z-score > 2.5σ).
-- **Threat Fusion Engine** — Correlates multiple detection signals from the same host within a sliding time window (60s–300s), reducing false alarms by up to 90%.
-- **MITRE ATT&CK Kill-Chain Reconstruction** — Links sequential multi-stage attacks: Recon → DGA → C2 → Exfiltration.
-- **Explainable Evidence Drawer** — Human-readable feature evidence and values behind every alert.
-- **Integrated Demo / Replay Mode** — Flow replay engine with `demo_flows.csv` for instant zero-setup demonstration.
-- **Modern SOC Command Center** — Dark-mode glassmorphic Next.js dashboard with live 5-second polling, Lucide React iconography, interactive charts, and real-time backend connectivity status.
+### 🛡️ Passive Ingestion & Live Capture
+- **Live NIC Promiscuous Sniffer**: Select any active host interface (`en0`, `eth0`, `any`), define Berkeley Packet Filters (BPF e.g. `ip or ip6`), and inspect real-time network traffic with zero risk of packet transmission.
+- **Forensic PCAP/PCAPNG Upload**: Ingest capture files up to 50MB with strict magic byte validation (`0xa1b2c3d4`, `0xd4c3b2a1`, `0x0a0d0d0a`, `0x4d3c2b1a`) and automated flow reconstruction.
+- **Server-Sent Events (SSE) Live Feed**: Replaces polling with a high-throughput `/api/v1/stream/live` 1-second push stream with graceful REST failover.
 
----
+### 🧠 Hybrid Threat Detection Vectors
+Detects and correlates 7 distinct threat classes without payload inspection:
+1. **DDoS Floods**: Volumetric traffic surges, packet rate anomalies, asymmetric packet sizes.
+2. **Command & Control (C2) Beaconing**: Periodic beaconing cadences identified via lag autocorrelation ($\ge 0.90$) and low inter-arrival variance.
+3. **Domain Generation Algorithms (DGA)**: High Shannon character entropy ($\ge 3.8$) and statistical randomness in DNS resolution attempts.
+4. **DNS Tunneling**: High payload query lengths, encoded subdomains, and unauthorized DNS data channels.
+5. **Network Reconnaissance**: Vertical port scans and horizontal host sweeps detected via fan-out connection dispersion.
+6. **Data Exfiltration**: High outbound-to-inbound byte ratios ($\ge 5.0$) and prolonged high-bandwidth flows.
+7. **Zero-Day & Encrypted Anomalies**: Behavioral timing anomalies isolated via unsupervised learning without breaking TLS privacy.
 
-## Attack Simulation Lab
-
-The **Attack Simulation Lab** is a fully integrated demo capability built into the SOC dashboard that allows triggering simulated attack telemetry entirely within the system — no manual JSON, no Swagger testing required.
-
-```text
-  ATTACK SIMULATION LAB
-  Authorized synthetic telemetry
-
-  [ DDoS ]  [ C2 Beacon ]  [ DGA ]  [ DNS Tunnel ]
-  [ Recon ] [ Exfil ]
-
-              [ RUN SIMULATION ]         [ RUN FULL ATTACK CHAIN ]
-
-  DEMO - SYNTHETIC TRAFFIC
-```
-
-### How it works
-
-1. Click any attack type in the dashboard (DDoS, C2 Beacon, DGA, DNS Tunnel, Recon, Exfil)
-2. Click **Run Simulation** (single attack) or **Run Full Attack Chain** (RECON → DGA → C2 → EXFIL multi-stage)
-3. Synthetic `RawFlow` objects are fabricated entirely in-memory — **no real packets are transmitted**
-4. The flow is routed through the complete detection pipeline:
-   - Feature Engine (24-feature extraction)
-   - 7 Hybrid Detectors (Rules + Random Forest + Isolation Forest)
-   - Threat Fusion Engine
-   - Attack Chain Correlator
-   - Evidence Builder
-5. The dashboard displays the real API response values — threat class, severity, confidence, evidence features, attack chain stages, and actual model scores
-
-### Live pipeline execution log
-
-The dashboard shows a step-by-step pipeline log as the simulation runs:
-
-```
-07:02:44  Initializing DDoS simulation...
-07:02:44  Crafting synthetic DDOS telemetry - src: 10.0.0.77
-07:02:44  Routing through Feature Engine...
-07:02:44  Running Hybrid Detectors - Rules + Random Forest + Isolation Forest...
-07:02:45  Random Forest    score: 0.975
-07:02:45  Isolation Forest score: 1.000
-07:02:45  Threat Fusion Engine - correlating detector signals...
-07:02:45  THREAT DETECTED: DDOS  [CRITICAL]
-07:02:45  Confidence: 99%  - Action: ALERT_ONLY
-```
-
-### AI / ML Analysis card
-
-After simulation, the dashboard displays **real model output values** (not hard-coded):
-
-| Model | Score | Role |
-|-------|-------|------|
-| Random Forest | 0.975 (97%) | Supervised threat classification |
-| Isolation Forest | 1.000 (100%) | Zero-day anomaly isolation |
-| Rule Engine | 1.000 (100%) | Deterministic signature score |
-| Threat Fusion | 99% | Multi-signal confidence |
-
-### API endpoint
-
-```http
-POST /api/v1/simulate
-Content-Type: application/json
-
-{
-  "attack_type": "DDOS",
-  "mode": "single"
-}
-```
-
-```http
-POST /api/v1/simulate
-Content-Type: application/json
-
-{
-  "attack_type": "RECON",
-  "mode": "chain"
-}
-```
-
-> [!NOTE]
-> This endpoint exists exclusively for demo/hackathon scenarios. It does **not** inject any traffic onto a real network. All telemetry is fabricated in-memory and processed entirely within the backend process.
+### 🔍 SOC Analyst Tools & Forensics
+- **Network Topology Graph**: Interactive force-directed canvas displaying internal hosts, external endpoints, and colored attack vectors with live edge pulsing.
+- **One-Click Forensic Export**: Generates compliant forensic JSON audit logs and sanitized PCAP capture files for incident documentation.
+- **MITRE ATT&CK Kill-Chain Reconstruction**: Automatically correlates sequential stages across time windows: `RECON` $\rightarrow$ `DGA` $\rightarrow$ `C2` $\rightarrow$ `EXFIL`.
+- **Integrated Attack Simulation Lab**: Fire in-memory simulated attacks (single-vector or multi-stage chains) to test detection models without touching external networks.
 
 ---
 
-## System Architecture
+## 🛠️ Technologies Used
 
-```text
-               DATA INGRESS
- (PCAP / Zeek JSONL / NetFlow / Demo Replay / Simulation)
-                    |
-                    v
-         +---------------------+
-         |   Feature Engine    | --> Extracts 24 canonical features
-         +----------+----------+
-                    |
-                    v
-     +-----------------------------+
-     |    HYBRID DETECTION TRIAD   |
-     | +-------------------------+ |
-     | | Deterministic Rules     | | --> Port bounds, entropy, fan-out
-     | +-------------------------+ |
-     | +-------------------------+ |
-     | | Random Forest (200 T)   | | --> Supervised known threat classifier
-     | +-------------------------+ |
-     | +-------------------------+ |
-     | | Isolation Forest (200 T)| | --> Unsupervised zero-day anomaly
-     | +-------------------------+ |
-     | +-------------------------+ |
-     | | Adaptive Baseline (EWMA)| | --> Rolling per-host deviation
-     | +-------------------------+ |
-     +-------------+---------------+
-                   |
-                   v
-         +---------------------+
-         | Threat Fusion Engine| --> Multi-signal aggregation & scoring
-         +----------+----------+
-                    |
-                    v
-         +---------------------+
-         | Attack Chain Engine | --> Multi-stage temporal correlation
-         +----------+----------+
-                    |
-                    v
-         +---------------------+
-         |  Evidence Builder   | --> Explainable audit trail
-         +----------+----------+
-                    |
-                    v
-              FastAPI Backend
-                    |
-          +---------+---------+
-          v                   v
-     GET /metrics        GET /alerts
-     POST /simulate      GET /chains
-          |                   |
-          +---------+---------+
-                    |
-                    v
-          Next.js SOC Dashboard
-```
+### Backend Engine & API
+| Component | Technology | Version | Purpose |
+|---|---|---|---|
+| Language | **Python** | 3.9 – 3.11 | Core detection algorithms and packet processing |
+| Web Framework | **FastAPI** | 0.115+ | High-performance asynchronous REST & SSE streaming |
+| Validation | **Pydantic V2** | Latest | Type-enforced schemas for flows, alerts, and metrics |
+| ASGI Server | **Uvicorn** | Standard | Production asynchronous server runtime |
+| Packet Dissection | **Scapy** | $\ge 2.5.0$ | Read-only protocol parsing and PCAP reconstruction |
+| Hardware Metrics | **psutil** | $\ge 5.9.0$ | Network interface discovery and status enumeration |
+| Rate Limiting | **SlowAPI** | $\ge 0.1.9$ | Sliding-window client rate limiting (DoS mitigation) |
+
+### Machine Learning & Data Pipeline
+| Component | Technology | Purpose |
+|---|---|---|
+| Modeling Library | **scikit-learn** | Supervised Random Forest and unsupervised Isolation Forest |
+| Data Processing | **Pandas & NumPy** | Vectorized feature calculations and dataset transformations |
+| Model Storage | **Joblib** | Serialization and deterministic loading of model weights |
+
+### Frontend SOC Command Center
+| Component | Technology | Version | Purpose |
+|---|---|---|---|
+| Framework | **Next.js** | 16.3 (Turbopack) | Modern React server-side rendering and static optimization |
+| UI Library | **React** | 19.x | High-performance component state rendering |
+| Language | **TypeScript** | 5.0+ | End-to-end type safety with backend API models |
+| Styling | **Vanilla CSS & Tailwind** | Latest | Dark-mode glassmorphic cyber-defense aesthetic |
+| Visuals & Icons | **Lucide React** | Latest | Vector iconography for security indicators and alerts |
+
+### Security SAST, Audit & DevOps
+| Component | Technology | Purpose |
+|---|---|---|
+| Containerization | **Docker & Docker Compose** | Non-root `appuser` production container runtime |
+| Static Security | **Bandit** | Python AST security vulnerability scanner (0 issues) |
+| Linter & Style | **Ruff** | Strict code formatting and import verification |
+| CVE Auditing | **pip-audit** | Real-time dependency vulnerability audit |
+| Automated Testing| **Pytest** | Comprehensive 89-test verification suite |
 
 ---
 
-## Technologies Used
+## 🤖 AI Tools, Models & Detection Architecture
 
-### Backend API & Core Processing
-
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Python | 3.9 – 3.11 | Core telemetry processing pipeline |
-| FastAPI | 0.115+ | High-performance async REST API |
-| Pydantic V2 | Latest | Strict schema validation & serialization |
-| Uvicorn | Latest | ASGI production server |
-| SQLite (WAL Mode) | Built-in | Alert logging & multi-log correlation |
-
-### Machine Learning & Data Science
-
-| Technology | Purpose |
-|-----------|---------|
-| Scikit-Learn | Random Forest & Isolation Forest implementations |
-| Pandas & NumPy | Vectorized feature extraction & dataset processing |
-| Joblib | Model serialization & in-memory artifact loading |
-
-### Frontend SOC Dashboard
-
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Next.js | 16 (App Router + Turbopack) | React application framework |
-| React | 19 | Component architecture |
-| TypeScript | Latest | Type-safe API integration |
-| Tailwind CSS | Latest | Glassmorphic dark-mode UI |
-| Lucide React | Latest | Professional SOC iconography |
-
-### Security, Quality & DevOps
-
-| Tool | Result |
-|------|--------|
-| Docker & Docker Compose | Multi-service containerized deployment |
-| GitHub Actions | Automated CI pipeline |
-| Ruff | Python linter — **0 errors** |
-| Bandit SAST | Security scanner — **0 issues** (5,581 LOC) |
-| pip-audit | Dependency vulnerability scanner |
-| Pytest | Automated test suite — **59/59 passing** |
-
----
-
-## AI Tools & Machine Learning Models
-
-SentinelFlow uses **exactly two machine learning models** working alongside deterministic mathematical rules:
+SentinelFlow deploys a deterministic, layered AI hierarchy where machine learning acts as an analytical sensor, never as an autonomous actuator:
 
 ```text
                       24-FEATURE TELEMETRY VECTOR
-                                   |
-                 +-----------------+-----------------+
-                 v                                   v
-      +---------------------+             +---------------------+
-      |    RANDOM FOREST    |             |  ISOLATION FOREST   |
-      | Supervised Ensemble |             | Unsupervised Anomaly|
-      |     (200 Trees)     |             |     (200 Trees)     |
-      +----------+----------+             +----------+----------+
-                 |                                   |
-                 v                                   v
+                                   │
+                 ┌─────────────────┴─────────────────┐
+                 ▼                                   ▼
+      ┌─────────────────────┐             ┌─────────────────────┐
+      │    RANDOM FOREST    │             │  ISOLATION FOREST   │
+      │ Supervised Ensemble │             │ Unsupervised Anomaly│
+      │     (200 Trees)     │             │     (200 Trees)     │
+      └──────────┬──────────┘             └──────────┬──────────┘
+                 │                                   │
+                 ▼                                   ▼
         Known Threat Vector                 Unseen Outlier Score
      Multi-Class Probabilities              Zero-Day Isolation
-                 |                                   |
-                 +-----------------+-----------------+
-                                   |
-                                   v
-                      +-------------------------+
-                      |  THREAT FUSION ENGINE   |
-                      | (Deterministic Arbiter) |
-                      +-------------------------+
+                 │                                   │
+                 └─────────────────┬─────────────────┘
+                                   ▼
+                      ┌─────────────────────────┐
+                      │  THREAT FUSION ENGINE   │
+                      │ (Deterministic Arbiter) │
+                      └────────────┬────────────┘
+                                   ▼
+                      ┌─────────────────────────┐
+                      │   LLM EXPLAINER AGENT   │
+                      │ (Advisory Evidence Text)│
+                      └─────────────────────────┘
 ```
 
 ### 1. Supervised Random Forest Classifier
-
-- **File**: `models/random_forest.joblib`
-- **Purpose**: Classifies known network threats into 7 frozen categories (`BENIGN`, `DDOS`, `C2_BEACON`, `RECON`, `DGA`, `DNS_TUNNEL`, `EXFIL`)
-- **Configuration**: 200 decision trees, Gini criterion, max feature sub-sampling
-- **Evaluation on Unseen Test Data**:
-  - F1-Score: `0.997`
-  - Validation Set: 1,048 flows
-  - Unseen Test Set: 524 flows
-  - Inference Speed: < 0.4ms per flow
+- **Artifact**: [`models/random_forest.joblib`](models/)
+- **Architecture**: 200 balanced decision trees, Gini impurity metric, max feature sub-sampling.
+- **Classes (7)**: `BENIGN`, `DDOS`, `C2_BEACON`, `RECON`, `DGA`, `DNS_TUNNEL`, `EXFIL`.
+- **Performance**:
+  - **F1-Score**: `0.997` on unseen test splits.
+  - **Inference Latency**: `< 0.4ms` per flow.
 
 ### 2. Unsupervised Isolation Forest Detector
+- **Artifact**: [`models/isolation_forest.joblib`](models/)
+- **Architecture**: 200 isolation trees, 5% contamination factor.
+- **Role**: Identifies zero-day anomalies and covert channels that exhibit abnormal feature distributions without requiring malicious training labels.
+- **Performance**: `88.98%` outlier precision on held-out anomalous traffic.
 
-- **File**: `models/isolation_forest.joblib`
-- **Purpose**: Detects novel zero-day anomalies and stealthy encrypted channels without prior attack signatures
-- **Configuration**: 200 isolation trees, 5% contamination factor
-- **Evaluation**:
-  - Outlier Precision: `88.98%`
-  - False Positive Rate: `13.73%`
-  - Trained purely on normal network patterns — requires zero malicious labels
+### 3. Adaptive EWMA Baseline
+- **Role**: Maintains rolling mean ($\mu$) and standard deviation ($\sigma$) per internal host for flow rates, packet sizes, and port fan-out.
+- **Trigger**: Flags behavioral shifts when $Z = \frac{|x - \mu|}{\sigma} > 2.5\sigma$.
 
-### 3. Deterministic Mathematical Signals
-
-- **Shannon DNS Entropy** — Character randomness in domain queries (H = -Σ pᵢ log₂ pᵢ)
-- **Periodicity Autocorrelation** — Lag correlation to detect regular beaconing cadences
-- **Traffic Rate Bounds** — Non-linear PPS and BPS surge detection
-- **Fan-Out Dispersion** — Destination port and host connection spread
-- **Byte Ratio Asymmetry** — Upload/download ratio imbalances
-- **Adaptive Baseline Z-Score** — Dynamic standard deviation distance (Z = |x − μ| / σ)
-
-### 4. LLM Invariant & Non-Authority Boundary
-
-> [!IMPORTANT]
-> **LLMs are NEVER used for primary threat detection or security decisions.**
-> - The LLM **cannot create alerts** (detection is 100% deterministic).
-> - The LLM **cannot decide severity or alter confidence** (calculated by Threat Fusion).
-> - The LLM **cannot block or mitigate** (SentinelFlow is strictly passive).
-> - Its sole role is generating plain-English advisory incident briefings of already-generated evidence for SOC analysts.
-
-### 5. Evidence-Driven AI Evaluation Agent & Quality Gate
-
-Adapted from the evidence-first methodology of [Agency Agents](https://github.com/msitarzewski/agency-agents), SentinelFlow incorporates a standalone AI Evaluation Agent (`agents/sentinelflow-ai-evaluation.md`) and native Python verification suite (`evaluation/`):
-
-```text
-    REAL ML                REAL LLM               EVALUATION AGENT             SECURITY
-┌──────────────┐       ┌──────────────┐       ┌──────────────────────┐     ┌──────────────┐
-│Random Forest │       │Evidence      │       │• Dataset QA          │     │              │
-│      +       │  ──►  │Explainer     │  ──►  │• 4-Gate Protocol     │ ──► │  ALERT_ONLY  │
-│Isolation     │       │(Advisory     │       │• Zero Leakage Audit  │     │ (Unidirect.  │
-│Forest        │       │ Only)        │       │• Regression Testing  │     │   Diode)     │
-└──────────────┘       └──────────────┘       │• Release Gate        │     └──────────────┘
-                                              └──────────────────────┘
-```
-
-> [!NOTE]
-> **Methodology, Not Runtime Dependency**: Agency Agents is used as a development and evaluation governance framework. SentinelFlow does **not** install or rely on external agent packages at runtime. The evaluation suite runs natively via standard Python scientific libraries (`scikit-learn`, `pandas`, `pydantic`).
-
-#### The Four Gates Protocol:
-1. **Gate 1 (PREFLIGHT)**: Canonical 24-feature schema match, zero NaN/Inf, zero attacker IP leakage across splits (`Attacker_IPs_Train ∩ Attacker_IPs_Test = ∅`).
-2. **Gate 2 (SMOKE)**: 10–100 sample end-to-end unpickling, feature extraction, RF + IF inference, and alert schema validation.
-3. **Gate 3 (SIGNAL)**: Validation dataset benchmark (`validation.csv`) with full confusion matrix and per-threat F1 scoring.
-4. **Gate 4 (CONTROLLED)**: Generalization audit on unseen held-out data (`test.csv`). Flags **FAIL** if test performance drops relative to validation (e.g. Train 0.99 ➔ Val 0.98 ➔ Test 0.61).
-
-#### Run the AI Quality Gate:
-```bash
-backend/.venv/bin/python evaluation/release_gate.py
-```
-```text
-╔════════════════════════════════════════╗
-║      SENTINELFLOW AI QUALITY GATE      ║
-╠════════════════════════════════════════╣
-║ Dataset Integrity       ✓ PASS         ║
-║ Feature Validation      ✓ PASS         ║
-║ Model Loading           ✓ PASS         ║
-║ Validation Metrics      ✓ PASS         ║
-║ Unseen Test             ✓ PASS         ║
-║ LLM Grounding           ✓ PASS         ║
-║ Security Boundary       ✓ PASS         ║
-║ Regression Check        ✓ PASS         ║
-╠════════════════════════════════════════╣
-║ RELEASE STATUS          ✓ READY        ║
-╚════════════════════════════════════════╝
-```
+### 4. LLM Explainer & AI Safety Boundaries
+SentinelFlow integrates optional generative explanation providers (**Ollama**, **OpenAI**, **Gemini**, or **Built-in Fallback**) with strict, unbreakable security boundaries:
+- **Zero Detection Authority**: The LLM cannot generate alerts, suppress threats, or adjust confidence scores.
+- **Zero Execution Agency**: The LLM has no access to bash commands, system tools, network interfaces, or firewall rules (OWASP LLM06).
+- **Prompt Injection Defense**: Network telemetry strings (IPs, domains, flags) are encapsulated inside strict data delimiters `<telemetry>...</telemetry>` and sanitized to prevent prompt hijacking (OWASP LLM01).
 
 ---
 
-## Setup & Installation
+## ⚙️ Setup & Installation Instructions
 
 ### Prerequisites
-
-- **Python** 3.9, 3.10, or 3.11
-- **Node.js** 18.x, 20.x, or 22.x
+- **Python**: `3.9`, `3.10`, or `3.11`
+- **Node.js**: `18.x`, `20.x`, or `22.x`
 - **Git**
-- **Docker & Docker Compose** (optional)
+- **Docker** (optional, for containerized deployment)
 
 ---
 
-### Step 1: Clone
+### Option A: Local Development Setup
 
+#### 1. Clone Repository
 ```bash
 git clone https://github.com/Vivek-2004V/SentinelFlow.git
 cd SentinelFlow
 ```
 
-### Step 2: Backend Setup
-
+#### 2. Backend Setup
 ```bash
 cd backend
 
+# Create virtual environment
 python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+source .venv/bin/activate    # On Windows: .venv\Scripts\activate
 
+# Install runtime and dev dependencies
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
-# Optional: re-train models locally
-python -m app.ml.train_classifier
-python -m app.ml.train_anomaly
+# Train deterministic models on bundled sample fixtures
+python -m app.ml.train --dataset ../data/sample/ci_smoke.csv --output-dir ../models
+
+# Verify test suite (89 passing tests)
+python -m pytest -q
 ```
 
-### Step 3: Frontend Setup
-
+#### 3. Frontend Setup
 ```bash
-cd frontend
+cd ../frontend
 
+# Install dependencies
 npm install
 
-# Point the frontend at the local backend
+# Configure environment pointing to local backend
 echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_API_KEY=sentinelflow-soc-dev-key" >> .env.local
+
+# Run Next.js Turbopack development server
+npm run dev
 ```
-
-### Step 4: Docker (One-Command Alternative)
-
-```bash
-# From repository root
-docker-compose up --build
-```
-
-- Backend API: `http://localhost:8000`
-- SOC Dashboard: `http://localhost:3000`
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
-## Usage & Quick Start
+### Option B: Docker Container Deployment (Non-Root)
 
-### 1. Start the Backend
+SentinelFlow runs in non-root Docker containers enforcing least privilege:
 
 ```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# From repository root
+docker compose up --build
 ```
+- **Frontend SOC Dashboard**: `http://localhost:3000`
+- **Backend FastAPI Service**: `http://localhost:8000`
+- **API Swagger Docs**: `http://localhost:8000/docs`
 
-| Endpoint | URL |
-|----------|-----|
-| Swagger Docs | http://localhost:8000/docs |
-| Health Check | http://localhost:8000/health |
-| System Status | http://localhost:8000/api/v1/status |
-| Recent Alerts | http://localhost:8000/api/v1/alerts |
-| Attack Simulation | http://localhost:8000/api/v1/simulate |
+---
 
-### 2. Start the SOC Dashboard
+### Option C: Vercel Production Deployment
 
+To deploy the frontend to Vercel:
+
+1. Import the repository `SentinelFlow` into the [Vercel Dashboard](https://vercel.com/dashboard).
+2. ⚠️ **Crucial Configuration (Monorepo)**:
+   - Navigate to **Settings** $\rightarrow$ **General**.
+   - Under **Root Directory**, click **Edit** and set it to **`frontend`**.
+   - Save and redeploy.
+3. In **Settings** $\rightarrow$ **Environment Variables**, add:
+   - `NEXT_PUBLIC_API_URL`: Your backend API public URL.
+   - `NEXT_PUBLIC_API_KEY`: Your SentinelFlow API secret key.
+
+---
+
+## 🚀 Usage & Operational Workflows
+
+### 1. Starting the Services
 ```bash
+# Terminal 1 - Backend
+cd backend && source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2 - Frontend
 cd frontend
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The dashboard auto-refreshes telemetry every 5 seconds and connects to the backend automatically.
+### 2. Live NIC Packet Sniffing
+1. Open the dashboard at `http://localhost:3000`.
+2. Scroll to the **Live Network Sniffer** section.
+3. Select your network adapter from the auto-enumerated interface dropdown (e.g. `en0`, `eth0`).
+4. Set a BPF filter (default: `ip or ip6`).
+5. Click **Start Capture**. Telemetry flows into the live detection pipeline and triggers real-time SSE threat alerts.
 
-### 3. Run the Attack Simulation Lab
+### 3. PCAP Ingestion & Analysis
+1. In the **PCAP Forensic Analysis** card, drag and drop a `.pcap` or `.pcapng` capture file.
+2. The file is validated for binary magic bytes, parsed into 5-tuple flows, and evaluated across all 7 detectors.
+3. Instant breakdown: Packets analyzed, flows reconstructed, threat categories, and AI forensic advisories.
 
-From the dashboard, click **Simulation Lab** in the sidebar. Choose an attack type and click **Run Simulation** to send synthetic telemetry through the live detection pipeline. Results appear in seconds — real model scores, evidence features, attack chain, and AI/ML analysis.
+### 4. Interactive Attack Simulation
+1. Click **Simulation Lab** in the dashboard navigation.
+2. Select any vector (`DDoS`, `C2 Beacon`, `DGA`, `DNS Tunnel`, `Recon`, `Exfil`).
+3. Choose **Run Simulation** (single attack) or **Run Full Attack Chain** (`RECON` $\rightarrow$ `DGA` $\rightarrow$ `C2` $\rightarrow$ `EXFIL`).
+4. View real ML scores, rule firings, and MITRE kill-chain progression generated entirely in memory.
 
-Or test via curl:
-
-```bash
-# Single DDoS attack simulation
-curl -s -X POST http://localhost:8000/api/v1/simulate \
-  -H "Content-Type: application/json" \
-  -d '{"attack_type": "DDOS", "mode": "single"}' | python3 -m json.tool
-
-# Full multi-stage attack chain
-curl -s -X POST http://localhost:8000/api/v1/simulate \
-  -H "Content-Type: application/json" \
-  -d '{"attack_type": "RECON", "mode": "chain"}' | python3 -m json.tool
-```
-
-### 4. Replay Demo Network Traffic
-
-```bash
-cd backend
-python -m app.ingest.replay
-```
-
-### 5. Run the Streaming Benchmark
-
-```bash
-cd backend
-PYTHONPATH=. python ../scripts/benchmark_streaming.py \
-  --file ../data/sample/demo_flows.csv --count 50
-```
+### 5. Exporting Forensic Bundles
+- Click **Export Forensics** to download a structured JSON audit bundle containing all captured alerts, correlated attack chains, and sensor health telemetry.
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```text
 SentinelFlow/
 ├── backend/
-│   ├── api/
-│   │   └── index.py                # Vercel ASGI entrypoint (imports app from app.main)
 │   ├── app/
 │   │   ├── api/v1/
 │   │   │   ├── endpoints/
-│   │   │   │   ├── alerts.py       # Alert queries and flow analysis
-│   │   │   │   ├── chains.py       # Multi-stage attack chain correlations
-│   │   │   │   ├── ingest.py       # Flow ingestion endpoint
-│   │   │   │   ├── metrics.py      # SOC dashboard KPI metrics
-│   │   │   │   ├── simulate.py     # Attack Simulation Lab endpoint
-│   │   │   │   └── stream.py       # SSE streaming endpoint
-│   │   │   └── router.py           # API router: mounts all v1 endpoints
-│   │   ├── detectors/              # 7 Modular hybrid threat detectors
-│   │   │   ├── base.py             # BaseHybridDetector + DetectionResult schema
-│   │   │   ├── baseline.py         # Adaptive EWMA baseline tracker
-│   │   │   ├── c2.py               # C2 Beaconing detector
-│   │   │   ├── ddos.py             # DDoS Flood detector
-│   │   │   ├── dga.py              # Domain Generation Algorithm detector
-│   │   │   ├── dns_tunnel.py       # DNS Tunneling detector
-│   │   │   ├── exfil.py            # Data Exfiltration detector
-│   │   │   ├── recon.py            # Reconnaissance / Port Scan detector
-│   │   │   ├── registry.py         # Central detector registry (run_all)
-│   │   │   └── tls_anomaly.py      # Zero-decryption TLS anomaly detector
-│   │   ├── features/               # 24-feature canonical extraction pipeline
-│   │   │   ├── flow.py             # Flow volume and rate calculations
-│   │   │   ├── dns.py              # Shannon entropy and DNS query metrics
-│   │   │   └── tls.py              # TLS/QUIC metadata extraction
-│   │   ├── ml/                     # ML training, evaluation, and inference
-│   │   │   ├── evaluate.py
-│   │   │   ├── model_registry.py   # Cached model artifact loader
-│   │   │   ├── predict.py          # Dual-model inference class
-│   │   │   ├── train_anomaly.py    # Isolation Forest training script
-│   │   │   └── train_classifier.py # Random Forest training script
-│   │   ├── schemas/                # Strict Pydantic V2 schemas
-│   │   │   ├── alert.py            # StandardAlert schema
-│   │   │   ├── detection.py        # DetectionResult, FusedThreat schemas
-│   │   │   └── flow.py             # RawFlow ingestion schema
+│   │   │   │   ├── alerts.py        # Threat query, status, and alert detail API
+│   │   │   │   ├── chains.py        # MITRE attack chain correlation queries
+│   │   │   │   ├── evaluation.py    # AI quality gate API runner
+│   │   │   │   ├── ingest.py        # Raw flow ingestion endpoint
+│   │   │   │   ├── metrics.py       # Live SOC dashboard KPI metrics
+│   │   │   │   ├── pcap.py          # PCAP file upload, magic bytes check & analysis
+│   │   │   │   ├── simulate.py      # Authorized attack simulation engine
+│   │   │   │   ├── sniffer.py       # Live NIC sniffer management & capture stream
+│   │   │   │   └── stream.py        # Server-Sent Events (SSE) live push stream
+│   │   │   └── router.py            # Aggregated v1 API routing
+│   │   ├── core/
+│   │   │   ├── auth.py              # Backward-compatible auth re-exports
+│   │   │   ├── config.py            # CORS whitelisting & 12-factor settings
+│   │   │   └── limiter.py           # Global SlowAPI rate limiter
+│   │   ├── detectors/               # 7 Hybrid detection modules
+│   │   │   ├── baseline.py          # Adaptive EWMA host baseline tracker
+│   │   │   ├── c2.py                # Periodic C2 beaconing detector
+│   │   │   ├── ddos.py              # Volumetric DDoS flood detector
+│   │   │   ├── dga.py               # Shannon entropy DGA detector
+│   │   │   ├── dns_tunnel.py        # DNS query tunneling detector
+│   │   │   ├── exfil.py             # Data exfiltration ratio detector
+│   │   │   ├── recon.py             # Port scan & sweep detector
+│   │   │   ├── registry.py          # Central detector dispatcher
+│   │   │   └── tls_anomaly.py       # Zero-decryption TLS anomaly detector
+│   │   ├── features/                # 24-feature canonical extraction engine
+│   │   ├── ingest/                  # Live capture engine & PCAP reader
+│   │   ├── ml/                      # Dual-model training, loading & prediction
+│   │   ├── schemas/                 # Strict Pydantic V2 data contracts
+│   │   ├── security/                # Dedicated API Key & Token auth module
+│   │   │   └── auth.py              # X-API-Key and Bearer verification
 │   │   ├── services/
-│   │   │   └── pipeline.py         # pipeline_orchestrator (unified entry point)
-│   │   └── main.py                 # FastAPI application entrypoint
-│   ├── tests/                      # Pytest test suite (59 tests)
-│   ├── Dockerfile
-│   ├── requirements.txt            # Production Python dependencies
-│   └── pyproject.toml              # Ruff + Pytest configuration
+│   │   │   ├── llm/                 # Safe, read-only AI explainer providers
+│   │   │   └── pipeline.py          # Unified detection pipeline orchestrator
+│   │   └── main.py                  # FastAPI app factory, CORS & middleware
+│   ├── tests/                       # Pytest automated test suite (89 tests)
+│   ├── Dockerfile                   # Hardened, non-root appuser container
+│   ├── requirements.txt             # Runtime production dependencies
+│   └── requirements-dev.txt         # Dev tools (pytest, ruff, bandit, pip-audit)
 │
-├── frontend/                       # Next.js 16 SOC Dashboard
+├── frontend/                        # Next.js 16 SOC Dashboard
 │   ├── src/
-│   │   ├── app/
-│   │   │   ├── page.tsx            # Main dashboard page
-│   │   │   ├── layout.tsx
-│   │   │   └── globals.css         # Design tokens, glassmorphism utilities
+│   │   ├── app/                     # Next.js App Router (page.tsx, layout.tsx)
 │   │   ├── components/
-│   │   │   ├── dashboard/
-│   │   │   │   ├── AttackSimulationLab.tsx   # Simulation Lab panel
-│   │   │   │   ├── SimulationAIAnalysis.tsx  # Real AI/ML score card
-│   │   │   │   ├── AttackChain.tsx           # Kill-chain visualizer
-│   │   │   │   ├── AdaptiveBaseline.tsx      # Baseline deviation chart
-│   │   │   │   ├── MLIntelligence.tsx        # Model architecture panel
-│   │   │   │   ├── LiveIntelligence.tsx      # Alerts feed
-│   │   │   │   ├── HeroDataFlow.tsx          # Unidirectional pipeline banner
-│   │   │   │   ├── MetricCard.tsx            # KPI summary cards
-│   │   │   │   ├── SecurityBoundary.tsx      # Read-only boundary panel
-│   │   │   │   ├── SensorStatus.tsx          # System health grid
-│   │   │   │   └── ThreatDistribution.tsx    # Threat type distribution chart
-│   │   │   ├── alerts/
-│   │   │   │   └── AlertDetail.tsx           # Alert evidence modal
-│   │   │   └── layout/
-│   │   │       ├── Header.tsx                # Top status bar
-│   │   │       └── Sidebar.tsx               # Navigation sidebar
+│   │   │   ├── alerts/              # Alert detail drawer & evidence modal
+│   │   │   ├── dashboard/           # Topology, sniffer, charts, simulation lab
+│   │   │   │   ├── ForensicExport.tsx   # Forensic JSON download tool
+│   │   │   │   ├── LiveNicSniffer.tsx   # Hardware NIC capture interface
+│   │   │   │   ├── NetworkTopology.tsx  # Force-directed topology visualizer
+│   │   │   │   └── AttackSimulationLab.tsx
+│   │   │   └── layout/              # Header (with SSE indicator) & Sidebar
 │   │   ├── lib/
-│   │   │   ├── api.ts              # API client (fetch wrappers + simulation fns)
-│   │   │   └── demo-data.ts        # Offline fallback demo data
-│   │   └── types/                  # TypeScript interfaces
+│   │   │   ├── api.ts               # Authenticated API client & SSE subscriber
+│   │   │   └── demo-data.ts         # Zero-dependency offline fallback data
+│   │   └── types/                   # TypeScript interfaces matching backend
 │   ├── package.json
-│   └── tailwind.config.ts
+│   └── next.config.ts
 │
-├── data/
-│   ├── raw/public/                 # Public dataset sample fixtures (CIC, CTU-13)
-│   └── sample/
-│       └── demo_flows.csv          # Demo replay dataset
+├── security/                        # Automated AI & Code Security Auditor
+│   └── audit/
+│       ├── boundary_check.py        # Passive invariant verification
+│       ├── endpoint_check.py        # Auth & CORS scanner
+│       ├── llm_security_check.py    # OWASP prompt injection auditor
+│       ├── report.py                # Central security orchestrator
+│       ├── secret_scan.py           # Hardcoded credential & git scanner
+│       └── upload_security_check.py # File upload & magic byte auditor
 │
-├── models/                         # Serialized ML artifacts (.joblib, excluded from git)
-│   └── README.md                   # Model provenance, hyperparameters & seeds
-│
-├── scripts/                        # Dataset normalization & evaluation utilities
-│   ├── benchmark_streaming.py
-│   ├── clean_data.py
-│   ├── evaluate_anomaly.py
-│   ├── evaluate_model.py
-│   ├── label_mapping.py
-│   └── normalize_cic2017.py
-│
-├── docs/                           # Architectural specifications
-│   ├── 04-dataset.md               # Dataset provenance & split breakdown
-│   ├── 05-features.md              # 24-feature canonical taxonomy
-│   ├── 06-detectors.md             # Threat detector specifications
-│   └── 07-fusion.md                # Threat fusion & temporal window specs
-│
-├── .github/workflows/ci.yml        # GitHub Actions CI pipeline
+├── data/                            # Public dataset fixtures (CIC-IDS, CTU-13)
+├── models/                          # Serialized ML artifacts (.joblib)
+├── evaluation/                      # 4-Gate AI quality evaluation suite
+├── .github/workflows/
+│   └── backend.yml                  # GitHub Actions automated CI/CD pipeline
 ├── docker-compose.yml
+├── SECURITY.md                      # Formal Security Policy & Scorecard
+├── SECURITY_AUDIT.md                # Automated Security Audit findings
 └── README.md
 ```
 
 ---
 
-## Critical Security Boundaries & Invariants
+## 🔒 Critical Security Boundaries & Defense-in-Depth
 
-SentinelFlow is built around strict physical and architectural invariants enforced at every layer:
+SentinelFlow enforces military-grade isolation between untrusted networks, the detection runtime, and the analyst interface:
 
-| Invariant | Guarantee | Enforcement |
-|-----------|-----------|-------------|
-| **100% Passive Ingestion** | Never probes, scans, or sends packets into the monitored network | Physical RX-only taps; zero egress socket creation in core engine |
-| **Zero Payload Decryption** | TLS/QUIC session payloads are never decrypted or inspected | Analyzes L3/L4 headers, packet timing, and entropy exclusively |
-| **Strictly Read-Only** | Operates exclusively as a passive telemetry sink | No ARP scanning, ICMP probing, or active network discovery |
-| **Alert-Only Response Mode** | Never executes automated blocking, firewall changes, or TCP resets | Architectural boundary (`action: "ALERT_ONLY"`). Endpoints `/block`, `/isolate`, `/mitigate` return `404 Not Found` |
-| **No Return Path** | Complete unidirectional communication guarantee | Hardware data diode compatibility; zero return socket binding |
-| **Simulation Boundary** | Simulation telemetry is fabricated entirely in-memory | No packets transmitted; pipeline is passive even during demo mode |
+| Security Invariant | System Guarantee | Enforcement Mechanism |
+|---|---|---|
+| **Zero Return Path** | Never injects packets into the monitored network | Unidirectional RX-only sockets; Scapy active calls forbidden |
+| **No Payload Decryption** | TLS/HTTPS traffic remains completely encrypted | Header metadata, SNI, and flow statistics used exclusively |
+| **Alert-Only Output** | Never performs automated firewall changes or host shutdowns | Endpoints `/block`, `/mitigate`, `/isolate` return `404 Not Found` |
+| **Strict CORS Whitelist** | Prevents malicious cross-origin requests | Origin whitelist enforced in `backend/app/core/config.py` |
+| **API Key Authentication** | Guards state-changing endpoints from unauthorized callers | `X-API-Key` & `Authorization: Bearer` enforced via `app/security/auth.py` |
+| **Non-Root Execution** | Mitigates container breakout and host privilege escalation | `USER appuser` in `backend/Dockerfile` |
+| **Ingestion Sanitization** | Blocks polyglot and malicious upload payloads | PCAP magic bytes check (`0xa1b2c3d4`), basename sanitization, 50MB cap |
+| **DoS Rate Limiting** | Throttles excessive ingestion or simulation requests | SlowAPI sliding window rate limits (10/min, 20/min) |
 
 ---
 
-## Dataset Provenance & Zero-Leakage Validation
+## 📊 Dataset Provenance & Zero-Leakage Validation
 
-SentinelFlow models are trained and evaluated on industry-standard cybersecurity datasets using **strict run/day-based disjoint partitioning** to prevent data leakage:
+SentinelFlow models are trained on gold-standard public cybersecurity datasets using **temporal, run-disjoint partitioning** to ensure zero data leakage:
 
-### Datasets
-
-| Dataset | Source | Threat Types |
-|---------|--------|-------------|
+| Dataset | Source Institution | Primary Threat Vectors |
+|---|---|---|
 | **CIC-IDS2017** | Canadian Institute for Cybersecurity | DDoS, PortScan, Botnet, Web Attacks, Benign |
-| **CIC-DDoS2019** | Canadian Institute for Cybersecurity | Volumetric & protocol-level DDoS |
-| **CTU-13** | Stratosphere Lab, Czech Technical University | Botnet C2 communication, malware traffic |
+| **CIC-DDoS2019** | Canadian Institute for Cybersecurity | Protocol-level & Volumetric DDoS attacks |
+| **CTU-13** | Stratosphere Lab, Czech Technical University | Real-world Botnet C2 communication |
 
-### Disjoint Partitioning
+### Strict Split Protocol
+- **Training Set (60%)**: Days 1–3 of traffic captures.
+- **Validation Set (20%)**: Day 4 distinct capture run.
+- **Unseen Test Set (20%)**: Day 5 isolated run.
+- **Zero Leakage Rule**: IP addresses and timestamps from test sets never appear in training splits ($\text{IP}_{\text{Train}} \cap \text{IP}_{\text{Test}} = \emptyset$).
+
+---
+
+## 🧪 Automated Security Auditing & CI/CD
+
+SentinelFlow implements automated continuous security verification on every push and pull request via GitHub Actions:
 
 ```text
-ATTACK RUN / DAY A  (Monday Benign + Tuesday Recon)   -->  TRAINING SET   (60%)
-ATTACK RUN / DAY B  (Wednesday DoS + Thursday Web)    -->  VALIDATION SET (20%)
-ATTACK RUN / DAY C  (Friday Botnet & DDoS)            -->  UNSEEN TEST    (20%)
+GitHub Actions CI Pipeline:
+ ├── 1. Install dependencies from requirements-dev.txt
+ ├── 2. Train deterministic models from fixtures (app.ml.train)
+ ├── 3. Execute Pytest suite (89 passing tests)
+ ├── 4. Ruff static analysis and import style verification
+ ├── 5. Bandit AST security scan (0 vulnerabilities)
+ ├── 6. Pip-Audit known CVE dependency vulnerability check
+ └── 7. SentinelFlow Architecture & Security Audit (security/audit/report.py)
 ```
 
-> [!NOTE]
-> Training and test data are split strictly by capture days/runs — never by random row shuffling. This prevents models from memorizing IP addresses or timestamps and ensures true generalization to unseen network behavior.
+Run the complete test and security verification locally:
+```bash
+# Run test suite
+cd backend && python -m pytest -q
+
+# Run Ruff linter
+python -m ruff check app tests
+
+# Run Bandit security scanner
+python -m bandit -r app -q
+
+# Run unified security auditor
+python ../security/audit/report.py
+```
 
 ---
 
-## Testing, Security Hardening & CI/CD
+## 📄 License
 
-### Automated Tests
-
-```bash
-cd backend
-pytest -v --tb=short
-# Result: 59 passed in 1.52s
-```
-
-Covers: feature extraction, all 7 detectors, adaptive baseline, fusion engine, attack chains, security boundaries, and API endpoints.
-
-### Code Quality & Security Scans
-
-```bash
-cd backend
-
-# Ruff linter
-ruff check app tests
-# All checks passed — 0 errors
-
-# Bandit SAST
-bandit -r app
-# 5,581 lines scanned — 0 security issues
-
-# Dependency vulnerability scan
-pip-audit
-```
-
-### CI Pipeline
-
-Every push to `main` automatically runs [GitHub Actions CI](.github/workflows/ci.yml):
-
-1. Install Python 3.11 backend dependencies
-2. Execute full 59-test Pytest suite
-3. Run Ruff linter and Bandit SAST scanner
-4. Run line-rate streaming benchmark
-5. Compile Next.js 16 frontend — 0 TypeScript errors
-
----
-
-## License
-
-This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.
+SentinelFlow is open-source software licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for complete details.
