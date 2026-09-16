@@ -18,6 +18,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend source
 COPY . .
 
+# Create non-root system user and set ownership
+RUN groupadd -r sentinelflow && useradd -r -g sentinelflow -d /app -s /sbin/nologin -c "SentinelFlow Non-Root Service User" sentinelflow \
+    && chown -R sentinelflow:sentinelflow /app
+
+# Switch to non-root user (CWE-250)
+USER sentinelflow
+
 # Expose port
 EXPOSE 8000
 

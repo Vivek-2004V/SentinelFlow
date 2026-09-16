@@ -121,9 +121,9 @@ def generate_markdown(findings: list[dict], stats: dict[str, int]) -> str:
     md.append("## 3. Defense-in-Depth Verification Checklist\n")
     md.append("- [x] Static code scans executed (`secret_scan`, `llm_security_check`, `endpoint_check`, `upload_security_check`, `boundary_check`)")
     md.append("- [x] Passive network capture mode verified (no active transmission on live interfaces)")
-    md.append("- [ ] Configure production CORS origin whitelisting in `backend/app/core/config.py`")
-    md.append("- [ ] Add API Key / Token Auth dependency to sensitive endpoints (`/api/v1/sniffer/*`, `/api/v1/pcap/upload`)")
-    md.append("- [ ] Enforce non-root container execution in `backend/Dockerfile`\n")
+    md.append("- [x] Configure production CORS origin whitelisting in `backend/app/core/config.py`")
+    md.append("- [x] Add API Key / Token Auth dependency to sensitive endpoints (`/api/v1/sniffer/*`, `/api/v1/pcap/upload`)")
+    md.append("- [x] Enforce non-root container execution in `backend/Dockerfile`\n")
 
     return "\n".join(md)
 

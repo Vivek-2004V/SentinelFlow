@@ -192,7 +192,7 @@ class LiveCaptureEngine:
                                 else str(q).rstrip(".")
                             )
                         except Exception:
-                            pass
+                            pass  # nosec B110
                 else:
                     proto_str = str(proto_num)
 

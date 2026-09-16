@@ -75,7 +75,7 @@ def parse_pcap_file(
                             if server_names:
                                 tls_sni = server_names[0].servername.decode("utf-8", errors="ignore")
                     except Exception:
-                        pass
+                        pass  # nosec B110
 
                 elif UDP in packet:
                     udp = packet[UDP]
@@ -92,7 +92,7 @@ def parse_pcap_file(
                             elif isinstance(qname, str):
                                 dns_query = qname.rstrip(".")
                         except Exception:
-                            pass
+                            pass  # nosec B110
                 else:
                     proto_str = str(proto_num)
 

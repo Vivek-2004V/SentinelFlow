@@ -20,10 +20,11 @@ import logging
 from typing import Any, Dict, List
 
 import psutil
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from app.core.auth import verify_api_key
 from app.ingest.live_capture import live_capture_engine
 
 logger = logging.getLogger("sentinelflow.sniffer_api")
@@ -105,8 +106,12 @@ async def list_interfaces() -> Dict[str, Any]:
     "/start",
     response_model=StartCaptureResponse,
     summary="Start passive live network capture",
+    dependencies=[Depends(verify_api_key)],
 )
-async def start_capture(req: StartCaptureRequest) -> StartCaptureResponse:
+async def start_capture(
+    req: StartCaptureRequest,
+    _auth: str = Depends(verify_api_key),
+) -> StartCaptureResponse:
     """
     Starts a passive live packet capture on the specified interface.
     Requires the FastAPI process to run with elevated privileges.
@@ -155,8 +160,11 @@ async def start_capture(req: StartCaptureRequest) -> StartCaptureResponse:
     "/stop",
     response_model=StopCaptureResponse,
     summary="Stop the active live capture session",
+    dependencies=[Depends(verify_api_key)],
 )
-async def stop_capture() -> StopCaptureResponse:
+async def stop_capture(
+    _auth: str = Depends(verify_api_key),
+) -> StopCaptureResponse:
     """Gracefully stops the active live capture session."""
     if not live_capture_engine.stats.running:
         raise HTTPException(

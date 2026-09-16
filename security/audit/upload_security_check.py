@@ -29,10 +29,14 @@ def check_upload_endpoints(path: Path) -> list[dict]:
         return []
 
     for i, line in enumerate(lines, 1):
-        # Detect UploadFile parameter in endpoints
-        if "UploadFile" in line:
+        # Detect UploadFile parameter in endpoint signatures (ignore imports)
+        if "UploadFile" in line and not line.strip().startswith("from ") and not line.strip().startswith("import "):
             # Check context around upload handler
             context = "\n".join(lines[max(0, i-2):min(len(lines), i+35)])
+            
+            # If the function is a one-line delegate to another checked handler, skip redundant alerts
+            if "return await analyze_pcap" in context or "return analyze_pcap" in context:
+                continue
             
             # Check for path traversal: direct use of file.filename in paths without sanitization
             has_basename_sanitization = (

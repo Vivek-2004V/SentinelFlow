@@ -10,7 +10,9 @@ class Settings(BaseSettings):
     environment: str = "development"
     api_version: str = "v1"
 
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
+    api_key: str = "sentinelflow-soc-dev-key"
+    enforce_api_key: bool = False
 
     max_upload_size_mb: int = 50
     processing_timeout_seconds: int = 30
@@ -34,6 +36,18 @@ class Settings(BaseSettings):
         env_file=".env",
         extra="ignore",
     )
+
+    def get_cors_origins(self) -> list[str]:
+        """
+        Parse and sanitize allowed CORS origins.
+        Strictly prevents wildcard origins in production environments.
+        """
+        origins = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        if self.environment.lower() == "production":
+            # Disallow wildcard in production
+            filtered = [o for o in origins if o != "*"]
+            return filtered or ["https://soc.sentinelflow.internal"]
+        return origins
 
 
 settings = Settings()

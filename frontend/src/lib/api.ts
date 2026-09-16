@@ -13,6 +13,8 @@ import {
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_KEY =
+  process.env.NEXT_PUBLIC_API_KEY ?? "sentinelflow-soc-dev-key";
 
 export interface ApiFetchResult<T> {
   data: T;
@@ -26,6 +28,9 @@ export interface ApiFetchResult<T> {
 export async function apiFetch<T>(path: string): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     cache: "no-store",
+    headers: {
+      "X-API-Key": API_KEY,
+    },
   });
 
   if (!response.ok) {
@@ -395,7 +400,10 @@ export async function startSniffer(
   try {
     const res = await fetch(`${API_URL}/api/v1/sniffer/start`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": API_KEY,
+      },
       body: JSON.stringify({ interface: iface, bpf_filter: bpfFilter }),
     });
     const data = await res.json();
@@ -409,6 +417,9 @@ export async function stopSniffer(): Promise<{ ok: boolean; message: string }> {
   try {
     const res = await fetch(`${API_URL}/api/v1/sniffer/stop`, {
       method: "POST",
+      headers: {
+        "X-API-Key": API_KEY,
+      },
     });
     const data = await res.json();
     return { ok: res.ok, message: data.message ?? "Stopped" };
@@ -441,6 +452,9 @@ export async function analyzePcap(file: File): Promise<PcapAnalysisResult> {
 
   const res = await fetch(`${API_URL}/api/v1/pcap/analyze`, {
     method: "POST",
+    headers: {
+      "X-API-Key": API_KEY,
+    },
     body: formData,
   });
 

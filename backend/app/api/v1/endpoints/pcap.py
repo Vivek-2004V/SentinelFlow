@@ -6,9 +6,10 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 
+from app.core.auth import verify_api_key
 from app.ingest.pcap_reader import parse_pcap_file
 from app.schemas.alert import StandardAlert
 from app.services.llm.service import llm_service
@@ -20,6 +21,14 @@ router = APIRouter(prefix="/pcap", tags=["PCAP Analysis"])
 
 ALLOWED_EXTENSIONS = {".pcap", ".pcapng"}
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
+
+PCAP_MAGIC_HEADERS = (
+    b"\xa1\xb2\xc3\xd4",  # Standard PCAP microsecond
+    b"\xd4\xc3\xb2\xa1",  # Standard PCAP swapped
+    b"\xa1\xb2\x3c\x4d",  # Nanosecond PCAP
+    b"\x4d\x3c\xb2\xa1",  # Nanosecond PCAP swapped
+    b"\x0a\x0d\x0d\x0a",  # PCAP-NG
+)
 
 
 class PcapSecurityInfo(BaseModel):
@@ -61,6 +70,7 @@ class PcapAnalysisResponse(BaseModel):
     response_model=PcapAnalysisResponse,
     status_code=status.HTTP_200_OK,
     summary="Passively analyze a PCAP/PCAPNG capture file",
+    dependencies=[Depends(verify_api_key)],
     description=(
         "Uploads a .pcap or .pcapng network capture file, reconstructs 5-tuple flows, "
         "and routes them through the SentinelFlow passive detection & threat fusion pipeline."
@@ -68,6 +78,7 @@ class PcapAnalysisResponse(BaseModel):
 )
 async def analyze_pcap(
     file: UploadFile = File(...),
+    _auth: str = Depends(verify_api_key),
 ) -> PcapAnalysisResponse:
     orig_filename = Path(file.filename or "capture.pcap").name
     extension = Path(orig_filename).suffix.lower()
@@ -90,6 +101,13 @@ async def analyze_pcap(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded PCAP file is empty.",
+        )
+
+    # 3. Magic byte header verification (CWE-434 defense-in-depth)
+    if len(content) < 4 or not any(content.startswith(magic) for magic in PCAP_MAGIC_HEADERS):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file has invalid magic byte header (not a valid PCAP/PCAPNG binary capture).",
         )
 
     # 3. Write securely to tempfile and process
@@ -157,3 +175,18 @@ async def analyze_pcap(
         llm_advisory=llm_advisory_text,
         llm=llm_explanation,
     )
+
+
+@router.post(
+    "/upload",
+    response_model=PcapAnalysisResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Upload & passively analyze a PCAP/PCAPNG capture file (alias to /analyze)",
+    dependencies=[Depends(verify_api_key)],
+)
+async def upload_pcap(
+    file: UploadFile = File(...),
+    _auth: str = Depends(verify_api_key),
+) -> PcapAnalysisResponse:
+    """Alias for /analyze endpoint for standard upload route conventions."""
+    return await analyze_pcap(file=file, _auth=_auth)
