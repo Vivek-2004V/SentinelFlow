@@ -112,36 +112,24 @@ def test_public_parsers():
     cic_file = base / "cic_ids2017" / "sample_cic_ids2017.csv"
     ctu_file = base / "ctu13" / "sample_ctu13.binetflow"
 
-    # Ensure test fixtures exist if running in minimal CI environment
-    if not cic_file.exists():
-        cic_file.parent.mkdir(parents=True, exist_ok=True)
-        cic_file.write_text(
-            "Destination Port, Flow Duration, Total Fwd Packets, Total Backward Packets,Total Length of Fwd Packets, Total Length of Bwd Packets, Fwd Packet Length Max, Fwd Packet Length Min, Protocol, Label\n"
-            "80, 1500, 3, 2, 180, 240, 60, 60, 6, BENIGN\n"
-            "80, 200, 15000, 0, 900000, 0, 60, 60, 6, DDoS\n"
-            "443, 2500, 4, 3, 240, 360, 60, 60, 6, BENIGN\n"
-            "22, 50, 1, 0, 60, 0, 60, 60, 6, PortScan\n",
-            encoding="utf-8",
-        )
-
-    if not ctu_file.exists():
-        ctu_file.parent.mkdir(parents=True, exist_ok=True)
-        ctu_file.write_text(
-            "StartTime,Dur,Proto,SrcAddr,Sport,Dir,DstAddr,Dport,State,sTos,dTos,TotPkts,TotBytes,SrcBytes,Label\n"
-            "2011/08/10 09:50:00.123456,1.25,tcp,147.32.84.165,49152,->,147.32.80.9,80,CON,0,0,10,1200,600,flow=From-Botnet-V42-UDP-Attempt\n"
-            "2011/08/10 09:50:05.123456,0.05,tcp,147.32.84.165,49153,->,203.0.113.88,8443,CON,0,0,4,512,256,flow=From-Botnet-V42-TCP-CC\n"
-            "2011/08/10 09:50:10.123456,2.10,tcp,147.32.84.170,54321,->,172.217.16.206,443,CON,0,0,18,14500,4200,flow=Background-Established-cmp\n",
-            encoding="utf-8",
-        )
-
     cic_records = parse_cic_ids2017_csv(cic_file)
     assert len(cic_records) > 0
-    assert any(r["threat_class"] == "DDOS" for r in cic_records)
-    assert any(r["threat_class"] == "BENIGN" for r in cic_records)
+
+    cic_classes = {
+        record["threat_class"]
+        for record in cic_records
+    }
+    assert "BENIGN" in cic_classes
+    assert "DDOS" in cic_classes
 
     ctu_records = parse_ctu13_binetflow(ctu_file)
     assert len(ctu_records) > 0
-    assert any(r["threat_class"] == "C2_BEACON" for r in ctu_records)
+
+    ctu_classes = {
+        record["threat_class"]
+        for record in ctu_records
+    }
+    assert "C2_BEACON" in ctu_classes
 
 
 def test_disjoint_run_based_partitioning():

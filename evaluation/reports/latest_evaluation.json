@@ -25,8 +25,8 @@
     "validation_macro_f1": 1.0,
     "test_macro_f1": 1.0,
     "generalization_delta": 0.0,
-    "throughput_fps": 26267,
-    "latency_us": 38.07,
+    "throughput_fps": 73197,
+    "latency_us": 13.66,
     "per_class_f1": {
       "BENIGN": 1.0,
       "C2_BEACON": 1.0,
@@ -50,5 +50,5 @@
   "release_ready": true,
   "release_status": "READY",
   "failure_reasons": [],
-  "timestamp": "2026-09-16T16:34:39.861581Z"
+  "timestamp": "2026-09-16T17:10:37.649521Z"
 }
