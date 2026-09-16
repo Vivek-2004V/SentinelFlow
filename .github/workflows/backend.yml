@@ -25,20 +25,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
 
       - name: Train Deterministic Models
         run: |
           python -m app.ml.train --dataset ../data/sample/ci_smoke.csv --output-dir ../models
 
       - name: Run tests
-        run: pytest
+        run: python -m pytest
 
       - name: Ruff
-        run: ruff check app tests
+        run: python -m ruff check app tests
 
       - name: Bandit
-        run: bandit -r app
+        run: python -m bandit -r app
 
       - name: Dependency audit
-        run: pip-audit || echo "Dependency audit completed"
+        run: python -m pip_audit
