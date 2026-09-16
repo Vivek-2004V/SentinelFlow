@@ -11,3 +11,4 @@ python-multipart
 httpx
 scapy>=2.5.0
 psutil>=5.9.0
+slowapi>=0.1.9

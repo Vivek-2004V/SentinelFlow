@@ -8,9 +8,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "SentinelFlow"
     environment: str = "development"
+    env: str = "development"
     api_version: str = "v1"
 
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
+    allowed_origins: list[str] = [
+        "https://sentinelflow.vercel.app",
+        "https://www.sentinelflow.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+    ]
+    cors_origins: str = "https://sentinelflow.vercel.app,https://www.sentinelflow.vercel.app,http://localhost:3000,http://127.0.0.1:3000"
     api_key: str = "sentinelflow-soc-dev-key"
     enforce_api_key: bool = False
 
@@ -42,11 +50,17 @@ class Settings(BaseSettings):
         Parse and sanitize allowed CORS origins.
         Strictly prevents wildcard origins in production environments.
         """
-        origins = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
-        if self.environment.lower() == "production":
+        combined = set(self.allowed_origins)
+        for o in self.cors_origins.split(","):
+            if o.strip():
+                combined.add(o.strip())
+
+        origins = sorted(combined)
+        is_prod = self.environment.lower() == "production" or self.env.lower() == "production"
+        if is_prod:
             # Disallow wildcard in production
             filtered = [o for o in origins if o != "*"]
-            return filtered or ["https://soc.sentinelflow.internal"]
+            return filtered or ["https://sentinelflow.vercel.app"]
         return origins
 
 

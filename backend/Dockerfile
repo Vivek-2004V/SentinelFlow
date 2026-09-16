@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Create non-root system group and user
+RUN addgroup --system sentinelflow && \
+    adduser --system --ingroup sentinelflow appuser
+
 # Install Python requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -18,12 +22,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend source
 COPY . .
 
-# Create non-root system user and set ownership
-RUN groupadd -r sentinelflow && useradd -r -g sentinelflow -d /app -s /sbin/nologin -c "SentinelFlow Non-Root Service User" sentinelflow \
-    && chown -R sentinelflow:sentinelflow /app
+# Set ownership to non-root user
+RUN chown -R appuser:sentinelflow /app
 
 # Switch to non-root user (CWE-250)
-USER sentinelflow
+USER appuser
 
 # Expose port
 EXPOSE 8000

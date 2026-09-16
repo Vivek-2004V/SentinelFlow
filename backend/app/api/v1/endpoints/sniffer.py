@@ -20,11 +20,12 @@ import logging
 from typing import Any, Dict, List
 
 import psutil
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from app.core.auth import verify_api_key
+from app.core.limiter import limiter
 from app.ingest.live_capture import live_capture_engine
 
 logger = logging.getLogger("sentinelflow.sniffer_api")
@@ -108,7 +109,9 @@ async def list_interfaces() -> Dict[str, Any]:
     summary="Start passive live network capture",
     dependencies=[Depends(verify_api_key)],
 )
+@limiter.limit("10/minute")
 async def start_capture(
+    request: Request,
     req: StartCaptureRequest,
     _auth: str = Depends(verify_api_key),
 ) -> StartCaptureResponse:

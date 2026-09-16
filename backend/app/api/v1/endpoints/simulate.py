@@ -15,9 +15,10 @@ import secrets
 from datetime import datetime
 from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 
+from app.core.limiter import limiter
 from app.detectors.baseline import global_baseline
 from app.detectors.registry import detector_registry
 from app.features.dns import extract_dns_features
@@ -299,7 +300,8 @@ def _extract_ai_analysis(raw_flow: RawFlow) -> AIAnalysis:
         "Returns the generated alert(s) plus real AI/ML analysis values."
     ),
 )
-async def run_simulation(req: SimulateRequest) -> SimulateResponse:
+@limiter.limit("20/minute")
+async def run_simulation(request: Request, req: SimulateRequest) -> SimulateResponse:
     alerts: list[StandardAlert] = []
     ai_analysis: Optional[AIAnalysis] = None
 

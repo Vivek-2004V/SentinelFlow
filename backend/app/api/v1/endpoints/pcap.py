@@ -6,10 +6,11 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel, Field
 
 from app.core.auth import verify_api_key
+from app.core.limiter import limiter
 from app.ingest.pcap_reader import parse_pcap_file
 from app.schemas.alert import StandardAlert
 from app.services.llm.service import llm_service
@@ -76,7 +77,9 @@ class PcapAnalysisResponse(BaseModel):
         "and routes them through the SentinelFlow passive detection & threat fusion pipeline."
     ),
 )
+@limiter.limit("10/minute")
 async def analyze_pcap(
+    request: Request,
     file: UploadFile = File(...),
     _auth: str = Depends(verify_api_key),
 ) -> PcapAnalysisResponse:
@@ -184,9 +187,11 @@ async def analyze_pcap(
     summary="Upload & passively analyze a PCAP/PCAPNG capture file (alias to /analyze)",
     dependencies=[Depends(verify_api_key)],
 )
+@limiter.limit("10/minute")
 async def upload_pcap(
+    request: Request,
     file: UploadFile = File(...),
     _auth: str = Depends(verify_api_key),
 ) -> PcapAnalysisResponse:
     """Alias for /analyze endpoint for standard upload route conventions."""
-    return await analyze_pcap(file=file, _auth=_auth)
+    return await analyze_pcap(request=request, file=file, _auth=_auth)
