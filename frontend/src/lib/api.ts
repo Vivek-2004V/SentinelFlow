@@ -332,7 +332,16 @@ export function createLiveStream(
 
   es.onmessage = (event) => {
     try {
-      const data = JSON.parse(event.data) as LiveStreamMetrics;
+      const raw = JSON.parse(event.data);
+      const data: LiveStreamMetrics = {
+        flows_per_sec: Number(raw.flows_per_sec ?? raw.flows_processed_per_sec) || 0,
+        alerts_per_sec: Number(raw.alerts_per_sec ?? raw.alerts_emitted_per_sec) || 0,
+        average_latency_ms: Number(raw.average_latency_ms) || 0,
+        p95_latency_ms: Number(raw.p95_latency_ms) || 0,
+        total_flows: Number(raw.total_flows ?? raw.total_flows_processed) || 0,
+        total_alerts: Number(raw.total_alerts ?? raw.total_alerts_emitted) || 0,
+        active: Boolean(raw.active ?? true),
+      };
       onMessage(data);
     } catch {
       // ignore malformed frames

@@ -75,12 +75,16 @@ function layoutNodes(nodes: Omit<Node, "x" | "y">[], width: number, height: numb
 
 export function NetworkTopology({ alerts }: NetworkTopologyProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [width, setWidth] = useState(600);
+  const [width, setWidth] = useState<number | null>(null);
   const height = 400;
+  const [mounted, setMounted] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   const [subnetGroup, setSubnetGroup] = useState(false);
   const [filterSev, setFilterSev] = useState<string>("ALL");
+
+  // Only render SVG client-side to avoid hydration mismatch
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -139,7 +143,7 @@ export function NetworkTopology({ alerts }: NetworkTopologyProps) {
     }
 
     const rawNodes = Array.from(nodeMap.values());
-    const laidOut = layoutNodes(rawNodes, width, height);
+    const laidOut = layoutNodes(rawNodes, width ?? 600, height);
     const nodeById = new Map(laidOut.map((n) => [n.id, n]));
 
     return {
@@ -152,7 +156,7 @@ export function NetworkTopology({ alerts }: NetworkTopologyProps) {
         ty: nodeById.get(e.target)?.y ?? 0,
       })),
     };
-  }, [alerts, subnetGroup, width, filterSev]);
+  }, [alerts, subnetGroup, width ?? 600, filterSev]);
 
   const isEmpty = alerts.length === 0;
 
@@ -214,12 +218,16 @@ export function NetworkTopology({ alerts }: NetworkTopologyProps) {
             <p className="font-mono text-xs text-slate-400 uppercase tracking-wider">No alert flows to map</p>
             <p className="text-xs text-slate-500 mt-1">Run a simulation or ingest traffic to populate</p>
           </div>
+        ) : !mounted ? (
+          <div className="flex h-[400px] items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500/30 border-t-cyan-400" />
+          </div>
         ) : (
           <svg
             ref={svgRef}
             width="100%"
             height={height}
-            viewBox={`0 0 ${width} ${height}`}
+            viewBox={`0 0 ${width ?? 600} ${height}`}
             className="select-none"
           >
             <defs>

@@ -24,7 +24,7 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-[#060913]/90 px-4 md:px-6 backdrop-blur-md">
-      {/* Brand & Wordmark */}
+      {/* Brand */}
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-950/40 text-cyan-400 shadow-[0_0_15px_-3px_rgba(56,189,248,0.25)]">
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -37,83 +37,48 @@ export function Header({
               Sentinel<span className="text-cyan-400">Flow</span>
             </span>
             <span className="rounded bg-slate-800/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400">
-              SOC v1.0
+              v1.0
             </span>
           </div>
-          <p className="text-[11px] font-medium tracking-wide text-slate-400">
-            Passive Threat Intelligence
-          </p>
+          <p className="text-[11px] text-slate-500">AI Network Threat Detection</p>
         </div>
       </div>
 
-      {/* Center / Right Telemetry Status */}
-      <div className="flex items-center gap-2.5 md:gap-4">
-        {/* Replay / Ingest Mode Badge */}
-        <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-[#0B1120] px-3 py-1 text-xs">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              isOnline
-                ? "bg-emerald-400 animate-pulse"
-                : "bg-amber-400 animate-pulse"
-            }`}
-          />
-          <div className="flex items-center gap-1.5 font-mono text-[11px] font-medium tracking-wider">
-            <span className={isOnline ? "text-emerald-300" : "text-amber-300"}>
-              {isOnline ? "LIVE TAP INGRESS" : "REPLAY MODE"}
-            </span>
-            {!isOnline && (
-              <span className="hidden sm:inline text-slate-500 font-mono text-[10px]">
-                (Source: demo_flows.csv)
-              </span>
-            )}
-          </div>
-        </div>
+      {/* Right Status Area */}
+      <div className="flex items-center gap-2 md:gap-3">
 
-        {/* API Connectivity Status */}
-        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-slate-800/80 bg-[#070D1C] px-2.5 py-1 text-[11px] font-mono">
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              apiConnected ? "bg-emerald-400" : "bg-rose-500 animate-ping"
-            }`}
-          />
-          <span className={apiConnected ? "text-slate-300" : "text-rose-400"}>
-            {apiConnected ? "API CONNECTED" : "API OFFLINE"}
+        {/* Connection Status — simplified to one pill */}
+        <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold ${
+          isOnline
+            ? "border-emerald-500/30 bg-emerald-950/30 text-emerald-300"
+            : "border-amber-500/30 bg-amber-950/30 text-amber-300"
+        }`}>
+          <span className={`h-2 w-2 rounded-full animate-pulse ${isOnline ? "bg-emerald-400" : "bg-amber-400"}`} />
+          <span className="hidden sm:inline">
+            {isOnline ? "Live — Connected" : "Demo Mode"}
+          </span>
+          <span className="sm:hidden">
+            {isOnline ? "Live" : "Demo"}
           </span>
         </div>
 
-        {/* SSE Live Stream Indicator */}
-        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-slate-800/80 bg-[#070D1C] px-2.5 py-1 text-[11px] font-mono">
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              sseConnected ? "bg-cyan-400 animate-pulse" : "bg-slate-600"
-            }`}
-          />
-          <span className={sseConnected ? "text-cyan-300" : "text-slate-500"}>
-            {sseConnected ? "SSE LIVE" : "SSE OFF"}
-          </span>
+        {/* ML Status */}
+        <div className="hidden md:flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-950/20 px-3 py-1.5 text-[11px] font-semibold text-cyan-300">
+          <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span>AI Active</span>
         </div>
 
-        {/* Security Invariant Badges */}
-        <div className="hidden md:flex items-center gap-1.5">
-          <span className="rounded border border-cyan-500/30 bg-cyan-950/30 px-2 py-0.5 font-mono text-[11px] font-medium text-cyan-300">
-            READ-ONLY
-          </span>
-          <span className="rounded border border-slate-700 bg-slate-800/50 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-300">
-            ALERT-ONLY
-          </span>
-        </div>
-
-        {/* Last Updated Timestamp & Refresh Button */}
-        <div className="flex items-center gap-2 text-slate-500">
-          <span className="hidden xl:inline text-xs font-mono" suppressHydrationWarning={true}>
-            {isLoading ? "Syncing..." : `Updated: ${lastUpdated}`}
+        {/* Last updated + refresh */}
+        <div className="flex items-center gap-1.5 text-slate-500">
+          <span className="hidden xl:inline text-[11px] font-mono" suppressHydrationWarning={true}>
+            {isLoading ? "Refreshing..." : `Updated ${lastUpdated}`}
           </span>
           {onRefresh && (
             <button
               onClick={onRefresh}
               disabled={isLoading}
-              className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors disabled:opacity-50"
-              title="Poll backend telemetry"
+              title="Refresh data"
+              className="rounded-full p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors disabled:opacity-40"
             >
               <svg
                 className={`h-3.5 w-3.5 ${isLoading ? "animate-spin text-cyan-400" : ""}`}

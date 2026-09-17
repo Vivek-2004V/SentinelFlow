@@ -3,6 +3,7 @@
 > **Passive AI Threat Intelligence for One-Way Networks & Critical Infrastructure**  
 > *Observe. Correlate. Explain. Never Respond.*
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel&logoColor=white)](https://sentinel-frontend-two-virid.vercel.app/)
 [![CI/CD Security Checks](https://github.com/Vivek-2004V/SentinelFlow/actions/workflows/backend.yml/badge.svg)](https://github.com/Vivek-2004V/SentinelFlow/actions)
 [![Python Version](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -296,7 +297,9 @@ docker compose up --build
 
 ### Option C: Vercel Production Deployment
 
-To deploy the frontend to Vercel:
+🌐 **Official Production URL**: [https://sentinel-frontend-two-virid.vercel.app](https://sentinel-frontend-two-virid.vercel.app)
+
+To deploy or update the frontend on Vercel:
 
 1. Import the repository `SentinelFlow` into the [Vercel Dashboard](https://vercel.com/dashboard).
 2. ⚠️ **Crucial Configuration (Monorepo)**:
