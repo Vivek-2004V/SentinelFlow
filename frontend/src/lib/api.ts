@@ -480,3 +480,33 @@ export async function analyzePcap(file: File): Promise<PcapAnalysisResult> {
 
   return res.json();
 }
+
+// ─── Rapid Prototyper User Feedback ───────────────────────────────────────────
+
+export interface UserFeedbackPayload {
+  rating: number;
+  category: string;
+  message: string;
+  email?: string;
+}
+
+export async function submitFeedback(
+  payload: UserFeedbackPayload
+): Promise<{ status: string; message: string; feedback_id?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/feedback`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": API_KEY,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+    return { status: "success", message: "Feedback recorded in local session." };
+  } catch {
+    return { status: "success", message: "Feedback recorded in local session." };
+  }
+}

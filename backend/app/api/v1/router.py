@@ -10,6 +10,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints.alerts import router as alerts_router
 from app.api.v1.endpoints.chains import router as chains_router
 from app.api.v1.endpoints.evaluation import router as evaluation_router
+from app.api.v1.endpoints.feedback import router as feedback_router
 from app.api.v1.endpoints.ingest import router as ingest_router
 from app.api.v1.endpoints.metrics import router as metrics_router
 from app.api.v1.endpoints.pcap import router as pcap_router
@@ -28,4 +29,5 @@ api_v1_router.include_router(simulate_router)
 api_v1_router.include_router(evaluation_router)
 api_v1_router.include_router(pcap_router)
 api_v1_router.include_router(sniffer_router)
+api_v1_router.include_router(feedback_router)
 

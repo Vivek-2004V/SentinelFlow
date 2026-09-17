@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { FeedbackModal } from "@/components/feedback/FeedbackModal";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -42,6 +43,7 @@ export default function RootLayout({
             SentinelFlow v1.0 · AI-Powered Network Threat Detection · Passive Read-Only Monitor
           </p>
         </footer>
+        <FeedbackModal />
       </body>
     </html>
   );

@@ -13,7 +13,7 @@
 [![Security Invariant](https://img.shields.io/badge/Return%20Path-DISABLED%20(Air--Gapped)-red.svg)](#-critical-security-boundaries--invariants)
 [![Code Quality](https://img.shields.io/badge/Ruff-0%20errors-brightgreen.svg)](https://github.com/astral-sh/ruff)
 [![Security SAST](https://img.shields.io/badge/Bandit-0%20issues-brightgreen.svg)](https://github.com/PyCQA/bandit)
-[![Tests](https://img.shields.io/badge/Pytest-95%2F95%20passed-success.svg)](backend/tests/)
+[![Tests](https://img.shields.io/badge/Pytest-98%2F98%20passed-success.svg)](backend/tests/)
 
 ---
 
